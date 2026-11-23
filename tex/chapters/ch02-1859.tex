@@ -1,0 +1,288 @@
+\chapter{1859 年：那篇六页的论文}
+\label{chap:1859}
+
+\begin{keybox}[本章要点]
+黎曼一生只发表过一篇数论论文\cite{riemann1859,claymanuscript}。
+它做了三件事：(i) 把 $\zeta(s)$ 解析延拓到整个复平面并证明函数方程；
+(ii) 构造整函数 $\xi(s)$，把非平凡零点变成它的根；(iii) 用这些零点写出素数计数的显式公式。
+本章完成前两件，第三章做第三件。
+\end{keybox}
+
+\section{论文的背景}
+\label{sec:02-history}
+
+1859 年 11 月，黎曼当选柏林科学院通讯院士，在柏林科学院《月度报告》
+（\emph{Monatsberichte der Berliner Akademie}）上宣读了
+\textit{Ueber die Anzahl der Primzahlen unter einer gegebenen Gr\"osse}
+（《论小于给定值的素数的个数》）。当时他 33 岁。论文正文约六页，
+几乎没有详细证明，更像一份研究提纲；黎曼在给魏尔斯特拉斯的信中说，
+原本打算随后再写一篇更完整的文章，但未能完成\cite{edwards2001}。
+
+论文开篇第一句便引用欧拉乘积（这正是 \cref{thm:01-euler}），接着说：
+要研究 $\pit$，就应该把 $\zeta(s)$ 看作\emph{复变量}的函数。
+
+\begin{histbox}[黎曼自己怎么说那个"猜想"]
+在讨论零点之后，黎曼写道（据 David R.\ Wilkins 的英译转译）：
+\emph{「当然，人们很希望对此有一个严格的证明；但我在几次仓促而徒劳的尝试之后，
+暂时把这一探索搁置一旁，因为它对我这项研究的直接目的并非必要。」}
+\par\smallskip
+这句"顺便一提"的话，就是后来的黎曼猜想。黎曼并没有把它当作论文的目标——
+他的目标是\emph{给出 $\pit$ 的精确公式}；猜想只是公式里那个"最好如此"的附加条件。
+\end{histbox}
+
+\section{论文的三个步骤}
+\label{sec:02-plan}
+
+\begin{center}
+\begin{tikzpicture}[
+  node distance=8mm,
+  rstep/.style={draw,rounded corners=3pt,fill=orange!8,align=center,
+               minimum width=34mm,inner sep=5pt,font=\small},
+  arr/.style={-{Stealth[length=2.5mm]},thick,orange!60!black}
+]
+\node[rstep] (a) {\textbf{步骤 1}\\ $\Gamma$ + theta 函数\\ $\Rightarrow$ 解析延拓、函数方程};
+\node[rstep,below=of a] (b) {\textbf{步骤 2}\\ $\xi(s)=\tfrac12 s(s-1)\pi^{-s/2}\Gamma(s/2)\zeta(s)$\\ $\Rightarrow$ 整函数，零点 $\rho$};
+\node[rstep,below=of b] (c) {\textbf{步骤 3}\\ Perron 反演 $\log\zeta$\\ $\Rightarrow$ $J(x)$ 的显式公式};
+\draw[arr] (a)--(b); \draw[arr] (b)--(c);
+\end{tikzpicture}
+\end{center}
+
+\section{工具箱（$\star$）：$\Gamma$ 函数与 Mellin 变换}
+\label{sec:02-tools}
+
+\begin{definition}[Gamma 函数]
+$\displaystyle\Gamma(s)=\int_0^\infty \ee^{-t}t^{s-1}\,\dd t\quad(\Ree s>0)$，
+满足 $\Gamma(s+1)=s\Gamma(s)$、$\Gamma(1/2)=\sqrt\pi$，可亚纯延拓到 $\C$，
+在 $s=0,-1,-2,\dots$ 有一阶极点。
+\end{definition}
+
+关键的换元：对整数 $n\ge1$ 与 $\Ree s>0$，令 $u=\pi n^2 t$，得
+\begin{equation}\label{eq:02-mellin}
+  \int_0^\infty t^{s/2-1}\ee^{-\pi n^2 t}\,\dd t
+  =\pi^{-s/2}\Gamma\!\left(\frac s2\right)n^{-s}.
+\end{equation}
+对 $n$ 求和（$\Ree s>1$ 时可交换求和与积分）：
+\begin{equation}\label{eq:02-Lambda}
+  \Lmb_0(s):=\pi^{-s/2}\Gamma\!\left(\frac s2\right)\zeta(s)
+  =\int_0^\infty t^{s/2-1}\,\psi(t)\,\dd t,
+  \qquad
+  \psi(t):=\sum_{n=1}^{\infty}\ee^{-\pi n^2 t}.
+\end{equation}
+我们把左边这个组合记作 $\Lmb_0(s)$（文献中常记 $\Lambda(s)$）。
+\emph{积分表示是解析延拓的钥匙}：右端的积分在 $t\to\infty$ 时指数衰减，
+麻烦只在 $t\to0$。
+
+\section{工具箱（$\star$）：Jacobi theta 与 Poisson 求和}
+\label{sec:02-theta}
+
+设
+\begin{equation}\label{eq:02-theta}
+  \theta(t)=\sum_{n\in\Z}\ee^{-\pi n^2 t}=1+2\psi(t),\qquad t>0.
+\end{equation}
+
+\begin{lemma}[Jacobi 变换公式]\label{lem:02-theta}
+$\theta(t)=t^{-1/2}\theta(1/t)$。
+\end{lemma}
+
+\begin{proof}[证明思路]
+Poisson 求和公式说 $\sum_{n\in\Z}f(n)=\sum_{m\in\Z}\hat f(m)$，其中
+$\hat f(\xi)=\int_\R f(x)\ee^{-2\pi\iu x\xi}\dd x$。取 $f(x)=\ee^{-\pi t x^2}$，
+其傅里叶变换为 $\hat f(\xi)=t^{-1/2}\ee^{-\pi \xi^2/t}$，即得结论。
+（$f(x)=\ee^{-\pi x^2}$ 是傅里叶变换的不动点——这是整件事的核心。）
+\end{proof}
+
+由 $\psi=(\theta-1)/2$ 立刻得到
+\begin{equation}\label{eq:02-psi-transform}
+  \psi(t)=t^{-1/2}\psi(1/t)+\frac{t^{-1/2}-1}{2}.
+\end{equation}
+
+\section{解析延拓与函数方程（结构证明）}
+\label{sec:02-continuation}
+
+现在把 \cref{eq:02-Lambda} 的积分在 $t=1$ 处切开：
+$\int_0^\infty=\int_0^1+\int_1^\infty$。对 $[0,1]$ 段用 \cref{eq:02-psi-transform}：
+
+\noindent $\star$ \emph{计算细节}（可跳过）：
+\begin{align}
+\int_0^1 t^{s/2-1}\psi(t)\,\dd t
+&=\int_0^1 t^{s/2-1}\Bigl[t^{-1/2}\psi(1/t)+\tfrac12(t^{-1/2}-1)\Bigr]\dd t\notag\\
+&=\underbrace{\int_1^\infty u^{\frac{1-s}{2}-1}\psi(u)\,\dd u}_{\text{换元 }u=1/t}
++\frac12\left[\frac{2}{s-1}-\frac{2}{s}\right]\notag\\
+&=\int_1^\infty u^{\frac{1-s}{2}-1}\psi(u)\,\dd u+\frac{1}{s(s-1)}.
+\end{align}
+第二项里 $\int_0^1 t^{s/2-3/2}\dd t=2/(s-1)$，$\int_0^1 t^{s/2-1}\dd t=2/s$。
+
+把两段合并，得到对 $\Ree s>1$ 成立的恒等式
+\begin{equation}\label{eq:02-key}
+  \boxed{\;\Lmb_0(s)=\frac{1}{s(s-1)}
+  +\int_1^\infty\Bigl(t^{s/2-1}+t^{\frac{1-s}{2}-1}\Bigr)\psi(t)\,\dd t\;}.
+\end{equation}
+
+\begin{theorem}[Riemann 1859：解析延拓与函数方程]\label{thm:02-continuation}
+\begin{enumerate}[label=(\roman*)]
+  \item 右端的积分对所有 $s\in\C$ 收敛并给出整函数（因为 $\psi(t)=\bigO(\ee^{-\pi t})$）。
+        故 $\zeta(s)$ 可亚纯延拓到整个 $\C$，唯一的极点是 $s=1$ 处的一阶极点，
+        留数为 $1$；此外 $\zeta(0)=-1/2$。
+  \item \cref{eq:02-key} 右端在 $s\leftrightarrow1-s$ 下不变，所以
+        \begin{equation}\label{eq:02-Lambda-sym}
+          \Lmb_0(s)=\Lmb_0(1-s),\qquad
+          \pi^{-s/2}\Gamma\!\left(\frac s2\right)\zeta(s)
+          =\pi^{-\frac{1-s}{2}}\Gamma\!\left(\frac{1-s}{2}\right)\zeta(1-s).
+        \end{equation}
+\end{enumerate}
+\end{theorem}
+
+利用 $\Gamma$ 的反射公式 $\Gamma(z)\Gamma(1-z)=\pi/\sin\pi z$ 与倍元公式，
+\cref{eq:02-Lambda-sym} 可改写为更常见的形式：
+\begin{equation}\label{eq:02-fe}
+  \zeta(s)=2^{s}\pi^{s-1}
+  \sin\!\left(\frac{\pi s}{2}\right)\Gamma(1-s)\,\zeta(1-s),
+\end{equation}
+或等价地
+\begin{equation}\label{eq:02-fe3}
+  \zeta(1-s)=2\,(2\pi)^{-s}\cos\!\left(\frac{\pi s}{2}\right)\Gamma(s)\,\zeta(s).
+\end{equation}
+请记住 \cref{eq:02-fe3}：在 \cref{chap:lean-riemann} 里你会看到，
+mathlib 的定理 \texttt{riemannZeta\_one\_sub} 陈述的正是它。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=0.92\textwidth, height=6.6cm,
+  xlabel={$s$（实数）}, ylabel={$\zeta(s)$},
+  xmin=-4, xmax=4, ymin=-2.2, ymax=5.5,
+  axis lines=middle, grid=both, grid style={gray!18},
+  xtick={-4,-3,-2,-1,0,1,2,3,4}, ytick={-2,-1,0,1,2,3,4,5},
+  tick label style={font=\scriptsize},
+  legend pos=north west, legend cell align=left,
+  every axis legend/.append style={font=\small}
+]
+\addplot[blue!70!black,thick,no marks,restrict x to domain=-4:0.97]
+  table[x index=0,y index=1] {data/zeta_real.dat};
+\addplot[blue!70!black,thick,no marks,restrict x to domain=1.03:4]
+  table[x index=0,y index=1] {data/zeta_real.dat};
+\addplot[red!70!black,mark=*,only marks] coordinates {(-2,0) (-4,0)};
+\addplot[red!70!black,mark=*,only marks] coordinates {(0,-0.5)};
+\draw[red!60!black,dashed] (axis cs:1,-2.2)--(axis cs:1,5.5);
+\node[red!60!black,anchor=south west,font=\scriptsize] at (axis cs:1.05,3.6) {$s=1$ 极点};
+\legend{$\zeta(s)$（数值）, , 平凡零点 $\zeta(-2n)=0$}
+\end{axis}
+\end{tikzpicture}
+\caption{实轴上的 $\zeta(s)$（数据由 \texttt{scripts/gen\_data.py} 用函数方程 +
+eta 级数生成）。$s=1$ 是一阶极点；$s=-2,-4,\dots$ 是平凡零点；$\zeta(0)=-1/2$。
+真正有意思的零点不在实轴上，而在临界带内部。}
+\label{fig:02-zeta-real}
+\end{figure}
+
+\section{$\xi$ 函数与零点}
+\label{sec:02-xi}
+
+$\Lmb_0(s)$ 在 $s=0,1$ 有极点。乘上 $s(s-1)$ 即可把它们消掉：
+
+\begin{definition}[黎曼 $\xi$ 函数，现代记号]
+\begin{equation}\label{eq:02-xi}
+  \xi(s)=\frac12\,s(s-1)\,\pi^{-s/2}\Gamma\!\left(\frac s2\right)\zeta(s)
+  =\frac12 s(s-1)\Lmb_0(s).
+\end{equation}
+\end{definition}
+
+由 \cref{eq:02-key}，$\xi(s)=\frac12+\frac12 s(s-1)\int_1^\infty(\cdots)\psi(t)\dd t$，
+故 $\xi$ 是\emph{整函数}，且
+\begin{equation}\label{eq:02-xi-sym}
+  \xi(s)=\xi(1-s),\qquad \xi(0)=\xi(1)=\tfrac12 .
+\end{equation}
+$\xi$ 的零点恰好是 $\zeta$ 的非平凡零点（$s=0,1$ 处的因子把极点抵消，
+$\Gamma$ 的极点也不会产生 $\xi$ 的零点）。
+
+\begin{theorem}[零点的位置与对称性]\label{thm:02-zeros}
+设 $\zeta(\rho)=0$ 且 $\rho$ 不是平凡零点。则
+\begin{enumerate}[label=(\roman*)]
+  \item $0<\Ree\rho<1$（\emph{临界带}）。理由：$\Ree s>1$ 时欧拉乘积不为零；
+        $\Ree s<0$ 时由 \cref{eq:02-fe}，$\zeta(s)$ 的零点只能来自
+        $\sin(\pi s/2)=0$ 即 $s=-2,-4,\dots$；
+        而 $\zeta(s)\ne0$ 在 $\Ree s=1$ 上（Hadamard / de la Vall\'ee Poussin 1896），
+        再由 $\xi(s)=\xi(1-s)$ 得到 $\Ree s=0$ 上也没有零点。
+  \item 零点成四元组出现：$\rho,\ 1-\rho,\ \bar\rho,\ 1-\bar\rho$。
+        前两个来自 $\xi(s)=\xi(1-s)$，后两个来自 $\zeta(\bar s)=\overline{\zeta(s)}$。
+\end{enumerate}
+\end{theorem}
+
+\begin{definition}[黎曼猜想，教科书形式]
+所有非平凡零点都满足 $\Ree\rho=\dfrac12$（\emph{临界线}）。
+\end{definition}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[scale=1.15]
+  \draw[->,thick] (-3.3,0)--(3.3,0) node[right] {$\sigma=\Ree s$};
+  \draw[->,thick] (0,-2.3)--(0,2.3) node[above] {$t=\Imm s$};
+  \fill[blue!9] (0,-2.1) rectangle (2.1,2.1);
+  \draw[blue!45!black,thick] (0,-2.1)--(0,2.1);
+  \draw[blue!45!black,thick] (2.1,-2.1)--(2.1,2.1);
+  \draw[red!70!black,ultra thick,dashed] (1.05,-2.1)--(1.05,2.1);
+  \foreach \y in {-1.75,-1.15,-0.6,0.6,1.15,1.75}
+    {\fill[red!70!black] (1.05,\y) circle (2.2pt);}
+  \foreach \x in {-4,-3,-2,-1}
+    {\fill[gray!65] (\x/2,0) circle (2pt);}
+  \fill[orange!85!black] (2.1,0) circle (2.8pt);
+  \node[red!70!black,anchor=south west,font=\scriptsize] at (1.1,1.9) {$\sigma=\tfrac12$};
+  \node[blue!55!black,anchor=south,font=\scriptsize] at (1.05,2.15) {临界带 $0<\sigma<1$};
+  \node[below,font=\scriptsize] at (0,-0.05) {$0$};
+  \node[below,font=\scriptsize] at (1.05,-0.05) {$\tfrac12$};
+  \node[below,font=\scriptsize] at (2.1,-0.05) {$1$};
+  \node[orange!85!black,anchor=south west,font=\scriptsize] at (2.14,0.06) {极点};
+  \node[gray!55!black,anchor=north,font=\scriptsize] at (-2,-0.05) {平凡零点 $-2,-4,\dots$};
+\end{tikzpicture}
+\caption{$\zeta$ 的零点分布示意图。左侧负偶数上是平凡零点，$s=1$ 是极点，
+非平凡零点成四元组关于临界线和实轴对称。黎曼猜想说：中间蓝色带里的所有点
+都落在红色虚线 $\sigma=1/2$ 上。}
+\label{fig:02-critical-strip}
+\end{figure}
+
+\begin{histbox}[黎曼的原始记号]
+黎曼本人把变量写成 $t$：令 $s=\tfrac12+\iu t$，定义
+$\Xi(t)=\xi\!\left(\tfrac12+\iu t\right)$。由 $\xi(s)=\xi(1-s)$ 知
+$\Xi(t)=\Xi(-t)$ 是偶函数，且 $\Xi$ 是 $t^2$ 的整函数。黎曼写道：
+$\Xi(t)$ 的全部零点"很可能都是实数 $t$"。
+用现代语言，这恰恰就是 $\Ree\rho=\tfrac12$。
+\end{histbox}
+
+\section{Hadamard 乘积（陈述 + 解释）}
+\label{sec:02-hadamard}
+
+黎曼在论文里"猜测"（并未证明）$\xi$ 可以像多项式一样按零点作乘积分解：
+\begin{equation}\label{eq:02-hadamard}
+  \xi(s)=\xi(0)\prod_{\rho}\left(1-\frac{s}{\rho}\right)=\frac12\prod_\rho\left(1-\frac{s}{\rho}\right),
+\end{equation}
+其中 $\rho$ 跑遍非平凡零点（按对称方式配对求和）。
+
+这不显然：$\xi$ 是整函数而非多项式，乘积是否收敛、有没有指数因子，
+需要 Weierstrass / Hadamard 的整函数分解理论。
+Hadamard 1893 年证明 $\xi$ 的阶为 $1$，从而 \cref{eq:02-hadamard} 成立
+（严格形式含 $e^{s/\rho}$ 因子，配对后简化）。黎曼"猜对了但没有证明"
+\cite{hadamard1893,edwards2001}。
+
+这个乘积是第三章显式公式的\emph{唯一入口}：对 $\xi$ 取对数导数，
+左边是 $\zeta$ 的对数导数（含素数信息），右边是 $\sum_\rho \frac{1}{s-\rho}$
+（含零点信息）。把两边做 Mellin 反演，就得到素数与零点的等式。
+
+顺便记一个计数公式（Riemann--von Mangoldt）：
+\begin{equation}\label{eq:02-NT}
+  N(T):=\#\{\rho: 0<\Imm\rho\le T\}
+  =\frac{T}{2\pi}\log\frac{T}{2\pi}-\frac{T}{2\pi}+\bigO(\log T).
+\end{equation}
+它说明零点有无穷多个，且越来越密。
+
+\section{小结}
+\label{sec:02-summary}
+
+本章的输出可以压缩成两行：
+\begin{align}
+  &\text{\textbf{函数方程：}}\quad
+  \pi^{-s/2}\Gamma(s/2)\zeta(s)=\pi^{-\frac{1-s}{2}}\Gamma\!\left(\frac{1-s}{2}\right)\zeta(1-s),\tag{\ref{eq:02-Lambda-sym}}\\
+  &\text{\textbf{整函数化：}}\quad
+  \xi(s)=\tfrac12 s(s-1)\pi^{-s/2}\Gamma(s/2)\zeta(s),\quad \xi(s)=\xi(1-s).\tag{\ref{eq:02-xi}}
+\end{align}
+再加上 Hadamard 乘积 \cref{eq:02-hadamard}，我们就有了"零点表"。
+下一章把这张表翻译成素数计数函数 $J(x)$ 与 $\pit$ 的公式。

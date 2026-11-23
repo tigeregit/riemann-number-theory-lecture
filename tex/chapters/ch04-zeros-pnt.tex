@@ -1,0 +1,196 @@
+\chapter{零点、素数定理与黎曼猜想}
+\label{chap:zeros-pnt}
+
+\begin{keybox}[本章要点]
+1896 年，Hadamard 与 de la Vall\'ee Poussin 证明 $\zeta(s)$ 在直线 $\Ree s=1$ 上不为零，
+由此得到素数定理。黎曼猜想则要求更强的结论：所有非平凡零点都在 $\Ree s=1/2$ 上。
+本章给出经典"无零点"论证的核心（一个三角不等式！），列出 RH 的等价命题、
+部分结果与数值证据，并谈谈它与随机矩阵、量子混沌的意外联系。
+\end{keybox}
+
+\section{素数定理的证明思路}
+\label{sec:04-pnt}
+
+先写出 $\psi$ 的显式公式（比 $J$ 的更干净，因为 $-\zeta'/\zeta$ 的极点结构更简单）：
+对 $x>1$ 非素数幂，
+\begin{equation}\label{eq:04-psi-explicit}
+  \psi_0(x)=x-\sum_{\rho}\frac{x^{\rho}}{\rho}
+  -\frac{\zeta'(0)}{\zeta(0)}-\frac12\log\!\left(1-x^{-2}\right),
+  \qquad \frac{\zeta'(0)}{\zeta(0)}=\log(2\pi).
+\end{equation}
+这里 $\rho$ 仍跑遍非平凡零点。与 \cref{eq:03-explicit} 对照：
+$x$ 来自 $s=1$ 的极点；$\sum_\rho x^\rho/\rho$ 来自零点；
+常数与最后一项来自 $\Gamma$ 与平凡零点。
+
+若存在某个零点 $\Ree\rho=1$，则 $\abs{x^\rho/\rho}=x/\abs{\rho}$ 与主角 $x$ 同阶，
+$\psi(x)\sim x$ 就不成立。所以\emph{素数定理等价于 $\zeta$ 在 $\Ree s=1$ 上无零点}
+（严格地说，"无零点"经 Wiener--Ikehara Tauberian 定理给出 $\psi(x)\sim x$）。
+
+\begin{theorem}[Hadamard 1896；de la Vall\'ee Poussin 1896]\label{thm:04-nonvanishing}
+对一切实数 $t\ne0$，$\zeta(1+\iu t)\ne0$。
+\end{theorem}
+
+\begin{proof}[证明的核心（经典三角技巧，完整）]
+对 $\sigma>1$，由 \cref{eq:01-logzeta}
+\[
+ \Ree\bigl[3\log\zeta(\sigma)+4\log\zeta(\sigma+\iu t)+\log\zeta(\sigma+2\iu t)\bigr]
+ =\sum_p\sum_{k\ge1}\frac{p^{-k\sigma}}{k}
+   \Bigl[3+4\cos\theta+\cos2\theta\Bigr],
+\]
+其中 $\theta=kt\log p$。而恒等式
+\begin{equation}\label{eq:04-trig}
+  3+4\cos\theta+\cos2\theta=2(1+\cos\theta)^2\ge0
+\end{equation}
+成立，故左端 $\ge0$，取指数得
+\begin{equation}\label{eq:04-ineq}
+  \abs{\zeta(\sigma)}^{3}\,\abs{\zeta(\sigma+\iu t)}^{4}\,
+  \abs{\zeta(\sigma+2\iu t)}\ \ge\ 1\qquad(\sigma>1).
+\end{equation}
+
+反设 $\zeta(1+\iu t_0)=0$，$t_0\ne0$（零点至少一阶）。令 $\sigma\to1^+$：
+$\zeta(\sigma)\sim\frac{1}{\sigma-1}$，故 $\abs{\zeta(\sigma)}^3\sim(\sigma-1)^{-3}$；
+$\zeta(\sigma+\iu t_0)=\bigO(\sigma-1)$，故 $\abs{\cdot}^4=\bigO((\sigma-1)^4)$；
+$\zeta(\sigma+2\iu t_0)$ 有界（$1+2\iu t_0$ 不是极点）。
+三者相乘 $\to0$，与 \cref{eq:04-ineq} 矛盾。故 $\zeta(1+\iu t)\ne0$。
+\end{proof}
+
+\begin{theorem}[素数定理，PNT]\label{thm:04-pnt}
+$\displaystyle\pit\sim\frac{x}{\log x}\sim\Li(x)\quad(x\to\infty)$。
+等价地 $\psi(x)\sim x$，第 $n$ 个素数 $p_n\sim n\log n$。
+\end{theorem}
+
+\begin{proof}[证明结构]
+由 \cref{thm:04-nonvanishing} 与 $\xi(s)=\xi(1-s)$ 得 $\zeta$ 在 $\Ree s\ge1$ 无零点。
+于是 $-\zeta'(s)/\zeta(s)-\frac{1}{s-1}$ 在 $\Ree s\ge1$ 的邻域解析，
+由 Wiener--Ikehara Tauberian 定理得到 $\psi(x)\sim x$；
+再由分部求和（$\pi(x)=\sum_{n\le x}\Lmb(n)/\log n+\cdots$）得 $\pit\sim x/\log x$。
+Hadamard 与 de la Vall\'ee Poussin 的原始论证用显式公式与零自由区域直接做估计。
+\end{proof}
+
+\begin{histbox}[一个"不用复分析"的证明]
+1949 年 Erd\H os 与 Selberg 给出了 PNT 的\emph{初等}证明（只用实变量与组合恒等式），
+一度轰动。但"初等"不等于"简单"，也不等于"更好"：黎曼的框架给出了
+误差项、零点分布与整个 $L$ 函数体系，这些信息是初等证明看不到的。
+\end{histbox}
+
+\section{推论}
+\label{sec:04-corollaries}
+
+由 PNT（配上 Mertens 估计）可得
+\begin{equation}\label{eq:04-coro}
+  \sum_{p\le x}\frac1p=\log\log x+M+\bigO\!\left(\frac1{\log x}\right),\qquad
+  \prod_{p\le x}\left(1-\frac1p\right)\sim\frac{\ee^{-\gamma}}{\log x},
+\end{equation}
+其中 $M$ 是 Mertens 常数，$\gamma$ 是欧拉常数。这些式子与
+\cref{sec:01-infinite} 的 $\sum1/p=\infty$ 相呼应，并给出精确得多的渐近。
+
+\section{黎曼猜想的等价命题}
+\label{sec:04-equivalents}
+
+\begin{theorem}[von Koch 1901]\label{thm:04-vonkoch}
+$\mathrm{RH}\iff\pit=\Li(x)+\bigO(\sqrt{x}\log x)$。
+\end{theorem}
+
+下面这张表列出若干等价形式，说明 RH 不只是"一个关于零点的猜想"，
+而是同时出现在误差项、算术函数、甚至不等式里。
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.46\textwidth}p{0.48\textwidth}@{}}
+\toprule
+\textbf{等价命题} & \textbf{说明 / 出处}\\
+\midrule
+$\Ree\rho=\tfrac12$ 对所有非平凡零点 & 原始形式，Riemann 1859\\
+$\pit=\Li(x)+\bigO(\sqrt{x}\log x)$ & von Koch 1901，最直观\\
+$\psi(x)=x+\bigO(\sqrt{x}\log^2 x)$ & 与上式等价\\
+$M(x)=\sum_{n\le x}\mu(n)=\bigO(x^{1/2+\eps})$ 对一切 $\eps>0$ & Mertens 函数的增长\\
+$\sigma(n)<\ee^{\gamma}n\log\log n$（$n>5040$） & Robin 1984，只涉及除数函数\\
+$H_n$ 型不等式（Lagarias 2002） & 只涉及调和数与 $\sigma(n)$\\
+$\Xi(t)$ 的全部零点为实数 & 黎曼原始记号，$s=\tfrac12+\iu t$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{warnbox}[一个著名的"差点成立"的教训]
+1885 年 Stieltjes 声称证明了更强的 \emph{Mertens 猜想} $\abs{M(x)}<\sqrt{x}$，
+它蕴含 RH。1985 年 Odlyzko 与 te Riele 用大规模计算否定了它
+\cite{odlyzko1985}。注意：这不否定 RH（RH 对应的只是 $M(x)=\bigO(x^{1/2+\eps})$）。
+教训是：\emph{数值上亿万个样本都成立，也不能代替证明}。
+\end{warnbox}
+
+\section{部分结果与数值证据}
+\label{sec:04-partial}
+
+\begin{center}\small
+\begin{tabular}{@{}rp{0.76\textwidth}@{}}
+\toprule
+\textbf{年份} & \textbf{关于临界线上零点比例 $\kappa$ 的结果}\\
+\midrule
+1914 & Hardy：$N_0(T)\to\infty$，临界线上有无穷多零点\\
+1921 & Hardy--Littlewood：$N_0(T)\gg T$\\
+1942 & Selberg：$\kappa>0$，即正比例零点在临界线上\\
+1974 & Levinson：$\kappa>1/3$（且这些零点多为单零点）\\
+1989 & Conrey：$\kappa>2/5=40\%$\\
+2020 & Pratt--Robles--Zaharescu--Zeindler：$\kappa>5/12\approx41.7\%$\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+数值方面，Platt 与 Trudgian (2021) 结合严格区间算术与 Turing 方法证明：
+所有满足 $|\Imm\rho|\le 3\times10^{12}$ 的非平凡零点都满足 $\Ree\rho=1/2$，
+即前约 $1.2\times10^{13}$ 个零点全部在临界线上\cite{platt2021}。
+此外还有大量更高处的随机抽样验证。这些证据强烈支持 RH，但仍是"有限"的。
+
+\begin{histbox}[希尔伯特与千禧年奖]
+1900 年希尔伯特把黎曼猜想列入第 8 问题（"素数问题"，同批还有哥德巴赫猜想等）；
+传说他曾说，如果五百年后醒来，第一个要问的就是"RH 被证明了吗"。
+2000 年克雷数学研究所把它列为七个千禧年大奖难题之一，悬赏一百万美元
+\cite{clay2000,hilbert1900}。
+\end{histbox}
+
+\section{物理里的回响（选读）}
+\label{sec:04-physics}
+
+\begin{description}[leftmargin=2.2em]
+  \item[Hilbert--P\'olya 猜想] 若存在某个自伴算子（哈密顿量）$H$，使
+        $\tfrac12+\iu\gamma_n$ 是它的本征值，则 $\gamma_n$ 自动为实数，
+        RH 得证。这把 RH 变成一个"谱问题"。
+  \item[Montgomery 1973] 他计算了零点在对数尺度下的\emph{对关联}：
+        归一化的两点关联函数趋于 $1-\left(\frac{\sin\pi u}{\pi u}\right)^2$。
+        Dyson 立刻指出，这正是随机矩阵理论中 GUE（高斯酉系综）本征值的对关联。
+  \item[Odlyzko 1980s] 对高度约 $10^{20}$ 附近的零点做了大规模数值，
+        统计与 GUE 预测吻合到惊人精度。
+  \item[Berry--Keating 等] 用量子混沌、$H=xp$ 型哈密顿量寻找那个自伴算子，
+        至今未成功；但它把数论、随机矩阵与量子物理连成了一片。
+\end{description}
+
+对理工科学生，这也许是全讲义最有意思的暗示：\emph{素数分布的涨落，
+看起来像重原子核能级的涨落}。
+
+\section{推广}
+\label{sec:04-generalisations}
+
+黎曼的模式被反复复制：
+\begin{itemize}
+  \item \textbf{GRH}：把 $\zeta$ 换成 Dirichlet $L(s,\chi)$、Dedekind zeta、
+        自守 $L$ 函数，猜测所有非平凡零点仍在 $\Ree s=1/2$。
+        大量"条件性结果"以 GRH 为前提。
+  \item \textbf{有限域上的 RH}：Weil 对函数域 / 代数曲线证明了相应命题，
+        Deligne 1974 年证明 Weil 猜想（有限域上 RH 的高维类比）\cite{deligne1974}。
+        这是"RH 型定理"最辉煌的成功，也提示了 $\ell$ 进上同调与
+        Langlands 纲领的方向。
+  \item \textbf{其它等价对象}：Selberg zeta 函数、Ruelle zeta、图谱
+        （"图上的黎曼猜想"）等，都有类似的"零点--谱"结构。
+\end{itemize}
+
+\section{小结}
+\label{sec:04-summary}
+
+\begin{enumerate}[label=\arabic*.]
+  \item 素数定理 $= $ 显式公式 $+$ $\zeta$ 在 $\Ree s=1$ 无零点 $+$ Tauberian 论证；
+  \item RH $=$ 所有非平凡零点在 $\Ree s=1/2$ $\iff$ $\pit=\Li(x)+\bigO(\sqrt{x}\log x)$；
+  \item 一个半世纪以来，比例从"无穷多个"推进到 $5/12$，数值验证到 $10^{13}$ 量级，
+        但证明仍缺席。
+\end{enumerate}
+
+下一章把镜头拉远：看看黎曼在数论之外（其实密切相关）的工作，
+以及这些思想后来长成了什么。

@@ -1,0 +1,220 @@
+% -*- coding: utf-8 -*-
+% =====================================================================
+%  导言区：宏包、字体、定理环境、自定义命令
+%  编译方式： xelatex  （不需要 -shell-escape；代码用 listings 排版）
+% =====================================================================
+
+% ---------- 字体（macOS 中文字体；其他平台见 README） ----------
+\setCJKmainfont{Songti SC}[AutoFakeSlant=0.15]
+\setCJKsansfont{Heiti SC}
+\setCJKmonofont{Kaiti SC}
+\setmonofont{Menlo}[Scale=0.92]
+
+% ---------- 数学 ----------
+\usepackage{amsmath,amssymb,amsfonts,mathtools,bm}
+\usepackage{amsthm}
+\numberwithin{equation}{chapter}
+\allowdisplaybreaks[3]
+
+% ---------- 版式 ----------
+\usepackage{geometry}
+\geometry{a4paper,left=2.7cm,right=2.7cm,top=2.9cm,bottom=2.7cm}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs,array,multirow,tabularx}
+\usepackage{enumitem}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{arrows.meta,calc,decorations.pathreplacing,positioning,shapes.geometric}
+\usepackage{tikz}
+
+% ---------- 彩色提示框 ----------
+\usepackage[most]{tcolorbox}
+\tcbuselibrary{skins,breakable}
+
+% ---------- 代码排版：listings + XeLaTeX Unicode 映射 ----------
+\usepackage{listings}
+\usepackage{newunicodechar}
+\newcommand{\ucmath}[1]{\ensuremath{#1}}
+\newunicodechar{ℕ}{\ucmath{\mathbb{N}}}
+\newunicodechar{ℤ}{\ucmath{\mathbb{Z}}}
+\newunicodechar{ℚ}{\ucmath{\mathbb{Q}}}
+\newunicodechar{ℝ}{\ucmath{\mathbb{R}}}
+\newunicodechar{ℂ}{\ucmath{\mathbb{C}}}
+\newunicodechar{∑}{\ucmath{\sum}}
+\newunicodechar{∏}{\ucmath{\prod}}
+\newunicodechar{∈}{\ucmath{\in}}
+\newunicodechar{⊆}{\ucmath{\subseteq}}
+\newunicodechar{≤}{\ucmath{\le}}
+\newunicodechar{≥}{\ucmath{\ge}}
+\newunicodechar{≠}{\ucmath{\ne}}
+\newunicodechar{∃}{\ucmath{\exists}}
+\newunicodechar{∀}{\ucmath{\forall}}
+\newunicodechar{→}{\ucmath{\to}}
+\newunicodechar{↦}{\ucmath{\mapsto}}
+\newunicodechar{←}{\ucmath{\leftarrow}}
+\newunicodechar{↔}{\ucmath{\leftrightarrow}}
+\newunicodechar{⊢}{\ucmath{\vdash}}
+\newunicodechar{∧}{\ucmath{\land}}
+\newunicodechar{∨}{\ucmath{\lor}}
+\newunicodechar{¬}{\ucmath{\neg}}
+\newunicodechar{∣}{\ucmath{\mid}}
+\newunicodechar{↑}{\ucmath{\uparrow}}
+\newunicodechar{μ}{\ucmath{\mu}}
+\newunicodechar{ζ}{\ucmath{\zeta}}
+\newunicodechar{π}{\ucmath{\pi}}
+\newunicodechar{ε}{\ucmath{\varepsilon}}
+\newunicodechar{γ}{\ucmath{\gamma}}
+\newunicodechar{ϑ}{\ucmath{\vartheta}}
+\newunicodechar{⌊}{\ucmath{\lfloor}}
+\newunicodechar{⌋}{\ucmath{\rfloor}}
+\newunicodechar{⟨}{\ucmath{\langle}}
+\newunicodechar{⟩}{\ucmath{\rangle}}
+\newunicodechar{•}{\ucmath{\bullet}}
+\newunicodechar{·}{\ucmath{\cdot}}
+\newunicodechar{√}{\ucmath{\sqrt{\ }}}
+\newunicodechar{₀}{\textsubscript{0}}
+\newunicodechar{₊}{\textsubscript{+}}
+\newunicodechar{⁻}{\textsuperscript{-}}
+\newunicodechar{¹}{\textsuperscript{1}}
+
+\lstdefinelanguage{Lean}{
+  morekeywords={import,module,public,open,scoped,namespace,end,section,
+    def,theorem,lemma,example,axiom,constant,instance,class,structure,
+    inductive,where,by,have,let,in,if,then,else,match,with,
+    intro,exact,refine,apply,rw,simp,simpa,omega,ring,nlinarith,linarith,
+    norm_num,decide,native_decide,by_contra,rintro,rcases,cases,induction,
+    calc,unfold,show,from,sorry,admit,set_option,attribute,notation,
+    noncomputable,partial,opaque,unsafe,variable,universe,private,
+    protected,macro,syntax,eval,check,print,positivity,field_simp,aesop,
+    grind,rfl,ext,funext,filter_upwards,gcongr,ring_nf,push_cast},
+  morecomment=[l]{--},
+  morecomment=[s]{/-}{-/},
+  morestring=[b]",
+  sensitive=true
+}
+\lstset{
+  language=Lean,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!55!black}\bfseries,
+  commentstyle=\color{green!35!black}\itshape,
+  stringstyle=\color{red!55!black},
+  extendedchars=true,
+  columns=fullflexible,
+  keepspaces=true,
+  breaklines=true,
+  breakatwhitespace=false,
+  showstringspaces=false,
+  numbers=left,
+  numberstyle=\tiny\color{gray!55},
+  numbersep=8pt,
+  xleftmargin=14pt,
+  frame=leftline,
+  rulecolor=\color{gray!45},
+  framerule=0.8pt,
+  tabsize=2,
+  aboveskip=0.9em,
+  belowskip=0.7em
+}
+\newcommand{\leanfile}[2][]{\lstinputlisting[language=Lean,#1]{#2}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+% ---------- 引用、超链接 ----------
+\usepackage[backend=biber,style=numeric,sorting=none,giveninits=true,doi=false,isbn=false]{biblatex}
+\addbibresource{refs.bib}
+\usepackage[colorlinks=true,linkcolor=blue!55!black,citecolor=green!45!black,urlcolor=magenta!55!black,bookmarksnumbered=true,unicode=true]{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+% ---------- 定理类环境 ----------
+\theoremstyle{plain}
+\newtheorem{theorem}{定理}[chapter]
+\newtheorem{proposition}[theorem]{命题}
+\newtheorem{lemma}[theorem]{引理}
+\newtheorem{corollary}[theorem]{推论}
+\newtheorem{conjecture}[theorem]{猜想}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{定义}
+\newtheorem{example}[theorem]{例}
+\newtheorem{exercise}[theorem]{习题}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{注记}
+
+\crefname{theorem}{定理}{定理}
+\crefname{proposition}{命题}{命题}
+\crefname{lemma}{引理}{引理}
+\crefname{corollary}{推论}{推论}
+\crefname{definition}{定义}{定义}
+\crefname{example}{例}{例}
+\crefname{exercise}{习题}{习题}
+\crefname{remark}{注记}{注记}
+\crefname{conjecture}{猜想}{猜想}
+\crefname{figure}{图}{图}
+\crefname{table}{表}{表}
+\crefname{section}{节}{节}
+\crefname{chapter}{章}{章}
+\crefname{equation}{式}{式}
+
+% ---------- 常用记号 ----------
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\F}{\mathbb{F}}
+\DeclareMathOperator{\Ree}{Re}
+\DeclareMathOperator{\Imm}{Im}
+\DeclareMathOperator{\Li}{Li}
+\DeclareMathOperator{\Res}{Res}
+\DeclareMathOperator{\ord}{ord}
+\DeclareMathOperator{\sgn}{sgn}
+\DeclareMathOperator{\lcm}{lcm}
+\newcommand{\iu}{\mathrm{i}}
+\newcommand{\ee}{\mathrm{e}}
+\newcommand{\dd}{\mathop{}\!\mathrm{d}}
+\newcommand{\ssi}{\sigma}
+\newcommand{\vphi}{\varphi}
+\newcommand{\Lmb}{\Lambda}
+\newcommand{\Gam}{\Gamma}
+\newcommand{\pit}{\pi(x)}
+\newcommand{\bigO}{\mathcal{O}}
+\newcommand{\too}{\longrightarrow}
+\newcommand{\asympEq}{\asymp}
+\newcommand{\floor}[1]{\lfloor #1\rfloor}
+\newcommand{\ceil}[1]{\lceil #1\rceil}
+\newcommand{\abs}[1]{\left\lvert #1\right\rvert}
+\newcommand{\bigabs}[1]{\left\lvert #1\right\rvert}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+\newcommand{\keyword}[1]{\textbf{#1}}
+\newcommand{\term}[1]{\emph{#1}}
+
+% ---------- 标题页与章节样式 ----------
+\usepackage{titlesec}
+\titleformat{\chapter}[display]{\normalfont\huge\bfseries}{\chaptertitlename\ \thechapter}{18pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-10pt}{24pt}
+\setlength{\parskip}{0.35em}
+\setlength{\parindent}{2em}
+\renewcommand{\baselinestretch}{1.18}\normalsize
+
+% ---------- 自定义盒子 ----------
+\newtcolorbox{histbox}[1][]{%
+  enhanced, breakable, colback=blue!3, colframe=blue!30!black,
+  colbacktitle=blue!12, coltitle=black, fonttitle=\bfseries, title=#1,
+  left=6pt, right=6pt, top=5pt, bottom=5pt, arc=1.5pt,
+  borderline west={2pt}{0pt}{blue!45!black}
+}
+\newtcolorbox{keybox}[1][]{%
+  enhanced, breakable, colback=orange!4, colframe=orange!55!black,
+  colbacktitle=orange!15, coltitle=black, fonttitle=\bfseries, title=#1,
+  left=6pt, right=6pt, top=5pt, bottom=5pt, arc=1.5pt
+}
+\newtcolorbox{warnbox}[1][]{%
+  enhanced, breakable, colback=red!3, colframe=red!45!black,
+  colbacktitle=red!12, coltitle=black, fonttitle=\bfseries, title=#1,
+  left=6pt, right=6pt, top=5pt, bottom=5pt, arc=1.5pt
+}
+\newtcolorbox{codebox}[1][]{%
+  enhanced, breakable, colback=gray!3, colframe=gray!45,
+  coltitle=black, fonttitle=\bfseries\small, title=#1,
+  left=2pt, right=2pt, top=2pt, bottom=2pt, arc=1pt
+}

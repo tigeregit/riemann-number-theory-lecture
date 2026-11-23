@@ -1,0 +1,39 @@
+% -*- coding: utf-8 -*-
+%  黎曼在数论方面的研究 —— 理工科本科生讲义
+%  附：Lean 4 形式化证明教程
+%  编译：见仓库根目录的 Makefile（make pdf）
+% =====================================================================
+\documentclass[UTF8,openany,12pt,a4paper]{ctexbook}
+\input{preamble}
+
+\begin{document}
+\frontmatter
+\input{titlepage}
+\tableofcontents
+\listoffigures
+
+% 导论放在 \frontmatter 中：不带章号，正文第一章从「欧拉」开始。
+\include{chapters/ch00-intro}
+
+\mainmatter
+\part*{第一编~~黎曼与素数分布}
+\addcontentsline{toc}{part}{第一编~~黎曼与素数分布}
+\include{chapters/ch01-euler}
+\include{chapters/ch02-1859}
+\include{chapters/ch03-explicit}
+\include{chapters/ch04-zeros-pnt}
+\include{chapters/ch05-legacy}
+
+\part*{第二编~~用 Lean 形式化数论}
+\addcontentsline{toc}{part}{第二编~~用 Lean 形式化数论}
+\include{chapters/ch06-lean-intro}
+\include{chapters/ch07-lean-core}
+\include{chapters/ch08-lean-riemann}
+
+\appendix
+\include{chapters/appA-analysis}
+\include{chapters/appB-exercises}
+
+\backmatter
+\printbibliography[heading=bibintoc,title={参考文献与延伸阅读}]
+\end{document}

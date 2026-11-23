@@ -1,0 +1,195 @@
+\chapter{把初等数论写成可检验的证明}
+\label{chap:lean-core}
+
+\begin{keybox}[本章要点]
+本章逐行拆开四个真实文件：欧几里得定理、有限欧拉乘积、M\"obius 反演、
+素数计数函数。所有代码都在 \texttt{Lean 4.36.0 + mathlib v4.36.0} 下编译通过，
+可以在 \texttt{lean/} 目录里自己改、自己跑。
+\end{keybox}
+
+\section{欧几里得定理：从"显然"到"逐步"}
+\label{sec:07-euclid}
+
+第一编 \cref{sec:01-infinite} 用解析方法证明了素数无穷多。这里做更初等的版本：
+对任意 $n$，取 $p=\operatorname{minFac}(n!+1)$（$n!+1$ 的最小素因子），
+则必有 $p>n$。先看代码：
+
+\leanfile[caption={lean/Riemann/Euclid.lean：欧几里得定理},label={lst:euclid}]{../lean/Riemann/Euclid.lean}
+
+\begin{theorem}[对应数学命题]
+$\forall n\in\N,\ \exists p\ge n,\ p\ \text{为素数}$。
+\end{theorem}
+
+\subsection*{目标状态怎么变}
+
+把 \texttt{euclid} 的 \texttt{by} 块逐条放进 InfoView，会看到下面这条链：
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.30\textwidth}p{0.64\textwidth}@{}}
+\toprule
+\textbf{战术} & \textbf{之后的目标 / 说明}\\
+\midrule
+\texttt{let p := ...} & 上下文多出 \texttt{p := Nat.minFac (n.factorial + 1)}\\
+\texttt{have hp : p.Prime} & 由 \texttt{Nat.minFac\_prime hne} 得到；
+  \texttt{hne} 用 \texttt{Nat.factorial\_pos} + \texttt{omega} 证出\\
+\texttt{refine ⟨p, ?\_, hp⟩} & 只剩一个目标 \texttt{⊢ n ≤ p}\\
+\texttt{by\_contra hnot} & 上下文多 \texttt{hnot : ¬ n ≤ p}，目标 \texttt{⊢ False}\\
+\texttt{have hpn : p ≤ n := by omega} & \texttt{omega} 从 \texttt{¬ n ≤ p} 推出 \texttt{p < n}\\
+\texttt{hpdvd\_fact} & \texttt{Nat.dvd\_factorial hpos hpn}：$0<p$ 且 $p\le n$ $\Rightarrow$ $p\mid n!$\\
+\texttt{hpdvd\_succ} & \texttt{Nat.minFac\_dvd}：$p\mid n!+1$\\
+\texttt{hpdvd\_one} & \texttt{(Nat.dvd\_add\_iff\_right hpdvd\_fact).2}：由上面两条得 $p\mid 1$\\
+\texttt{exact hp.not\_dvd\_one ...} & 素因子不可能整除 $1$，矛盾\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+值得注意的几点：
+
+\begin{enumerate}[label=\arabic*.]
+  \item \emph{每个"显然"都对应一个具名库定理}：
+        \texttt{Nat.factorial\_pos}、\texttt{Nat.dvd\_factorial}、
+        \texttt{Nat.minFac\_prime}、\texttt{Nat.Prime.not\_dvd\_one}。
+        形式化把"数学常识"变成"可查的引用"。
+  \item \texttt{omega} 只负责线性算术，负责把 $\neg(n\le p)$ 变成 $p<n$；
+        \emph{整除推理}仍由人选择正确引理。战术不是万能的，它替你算，不替你想。
+  \item 文件最后 \texttt{euclid\_library} 直接调用
+        \texttt{Nat.exists\_infinite\_primes}——那是 mathlib 自己版本，
+        证明思路几乎相同。\emph{先自己写一遍，再对照库，是最好的学法。}
+\end{enumerate}
+
+\section{有限和与有限积：欧拉乘积的"胚胎"}
+\label{sec:07-eulerproduct}
+
+第一编 \cref{thm:01-euler} 是无穷乘积。在 \texttt{Lean} 里要陈述它，
+先得会把"有限个几何级数相乘"说清楚：
+
+\leanfile[caption={lean/Riemann/EulerProduct.lean},label={lst:eulerproduct}]{../lean/Riemann/EulerProduct.lean}
+
+三件事值得学：
+
+\begin{description}[leftmargin=2.2em]
+  \item[\textbf{归纳}] \texttt{geom\_sum\_mul} 用
+        \texttt{induction n with | zero => simp | succ n ih => ...}。
+        归纳步里 \texttt{Finset.sum\_range\_succ} 把
+        $\sum_{k<n+1}x^k$ 拆成 $\left(\sum_{k<n}x^k\right)+x^n$，
+        \texttt{rw [ih]} 用归纳假设，\texttt{ring} 收尾。
+        这是"有限和 + 归纳 + 环恒等式"的标准套路。
+  \item[\textbf{除法条件}] \texttt{eq\_div\_iff hx} 要求分母不为零，
+        所以定理显式带上 \texttt{hx : 1 - x ≠ 0}。
+        纸面上常写的"显然 $x\ne1$"，在这里是必须提供的参数。
+  \item[\textbf{计算验证}] 两个 \texttt{example} 用 \texttt{native\_decide}
+        直接把 $\prod_{p\in\{2,3,5\}}\left(1+\frac1p\right)$
+        与 $\sum_{d\mid 30}\frac1d$ 算出来比较。
+        展开乘积就是给每个素数选指数 $0$ 或 $1$；\emph{算术基本定理}
+        保证这些选法与 $30$ 的因子一一对应。
+        这正是 \cref{thm:01-euler} 的有限缩影。
+\end{description}
+
+\begin{warnbox}[一个必须记住的语法细节]
+mathlib v4.36 里大算子用\emph{成员关系}绑定：
+\texttt{∑ k ∈ Finset.range n, f k} 与 \texttt{∏ p ∈ P, g p}。
+旧教程常见的 \texttt{∑ k in s, ...} 在本版本\emph{不能}解析。
+同理 \texttt{atTop}、\texttt{π}、\texttt{μ}、\texttt{ζ}、
+\texttt{~[atTop]} 分别需要
+\texttt{open Filter}、\texttt{open scoped Nat.Prime}、
+\texttt{open scoped ArithmeticFunction.Moebius}、\texttt{open scoped zeta}、
+\texttt{open Asymptotics}。忘记开 scope 是初学者最常见的报错来源。
+\end{warnbox}
+
+\section{M\"obius 反演}
+\label{sec:07-moebius}
+
+第一编 \cref{thm:03-moebius} 用 $\sum_{d\mid n}\mu(d)=[n=1]$ 把 $J$ 变回 $\pi$。
+mathlib 把这类恒等式放进 \texttt{ArithmeticFunction}（算术函数环，
+乘法是 Dirichlet 卷积）：
+
+\leanfile[caption={lean/Riemann/Moebius.lean},label={lst:moebius}]{../lean/Riemann/Moebius.lean}
+
+\begin{itemize}
+  \item $\mu$ 的值由 \texttt{moebius\_apply\_one}、
+        \texttt{moebius\_apply\_prime} 等库定理给出；
+        \texttt{Squarefree}（无平方因子）是定义的一部分。
+  \item \texttt{moebius\_mul\_coe\_zeta} 说的就是
+        $\mu * \mathbf{1} = \varepsilon$（$\varepsilon(1)=1$，其余为 $0$），
+        即 $\mu$ 是常值函数 $\mathbf{1}$ 的\emph{卷积逆}。
+        这正是 M\"obius 反演的代数本质。
+  \item \texttt{sum\_eq\_iff\_sum\_smul\_moebius\_eq} 是反演定理本身：
+        $g(n)=\sum_{d\mid n}f(d)\ \iff\ f(n)=\sum_{d\mid n}\mu(d)\,g(n/d)$。
+        注意它用 \texttt{n.divisorsAntidiagonal}（因子对）而不是单边求和，
+        这是为了把 $d$ 与 $n/d$ 同时摆进式子里。
+\end{itemize}
+
+\begin{exercise}
+把 \texttt{Exercises.lean} 里第 2 题的 \texttt{sorry} 换成真证明：
+证明 $\sum_{d\mid 12}\mu(d)=0$。提示：\texttt{native\_decide} 即可。
+\end{exercise}
+
+\section{素数计数函数与"陈述"素数定理}
+\label{sec:07-pnt}
+
+\leanfile[caption={lean/Riemann/PrimeCounting.lean},label={lst:pc}]{../lean/Riemann/PrimeCounting.lean}
+
+这里第一次出现三类不同层次的东西，值得分清楚：
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.33\textwidth}p{0.61\textwidth}@{}}
+\toprule
+\textbf{层次} & \textbf{例子}\\
+\midrule
+\textbf{定义} & \texttt{Nat.primeCounting}：不超过 $n$ 的素数个数，记为 \texttt{π n}\\
+\textbf{已证定理} & \texttt{Nat.monotone\_primeCounting}、
+  \texttt{Nat.tendsto\_primeCounting}、\texttt{Nat.isEquivalent\_primeCounting}\\
+\textbf{我们自己的小引理} & \texttt{primeCounting\_le}：$\pi(n)\le n$，
+  证明用 \texttt{Nat.primesLE\_card\_eq\_primeCounting} 把 $\pi$ 换成
+  \texttt{Finset.card}，再用 \texttt{Finset.card\_le\_card} 比较\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+最后那个 \texttt{example} 值得停下来看：
+
+\begin{lstlisting}[language=Lean,numbers=none,frame=none,xleftmargin=0pt]
+example : (fun x : ℝ => (π ⌊x⌋₊ : ℝ)) ~[atTop]
+          (fun x : ℝ => x / Real.log x) :=
+  Nat.isEquivalent_primeCounting
+\end{lstlisting}
+
+这就是第一编 \cref{thm:04-pnt} 的\emph{完整形式化陈述}，而且 mathlib 已经证明了它
+（在 \texttt{Mathlib/NumberTheory/LSeries/WeakPNT.lean}）。
+符号 \texttt{~[atTop]} 是 \texttt{Asymptotics.IsEquivalent}（渐近等价），
+\texttt{⌊x⌋₊} 是实数到自然数的下取整，$x/\log x$ 里的 \texttt{Real.log} 是实对数。
+
+\begin{histbox}[一个好问题：这算"证明"了吗？]
+\texttt{Nat.isEquivalent\_primeCounting} 的证明在 mathlib 里是真实的、
+由内核检查过的。但如果你只是 \texttt{exact} 它，你做的是\emph{引用}，不是\emph{理解}。
+形式化并不替你学数学；它保证你引用的东西没有悄悄出错。
+\end{histbox}
+
+\section{常见坑清单}
+\label{sec:07-pitfalls}
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.40\textwidth}p{0.54\textwidth}@{}}
+\toprule
+\textbf{现象} & \textbf{原因 / 处理}\\
+\midrule
+\texttt{unexpected token 'in'} & 大算子要写 \texttt{∈} 不是 \texttt{in}\\
+\texttt{unknown identifier 'atTop'} & \texttt{open Filter}\\
+\texttt{unknown identifier 'π'} & \texttt{open scoped Nat.Prime}\\
+\texttt{unknown identifier 'μ'} & \texttt{open scoped ArithmeticFunction.Moebius}\\
+\texttt{unknown identifier 'Tendsto'} & \texttt{open Filter}\\
+\texttt{declaration uses 'sorry'} & 有未证明的洞；练习文件里是故意的\\
+\texttt{type mismatch ... ℕ vs ℤ} & 显式加类型标注 \texttt{(n : ℤ)} 或 \texttt{(n : ℝ)}\\
+\texttt{native\_decide} 失败 & 表达式含不可计算定义 / 或前面的文件有错误\\
+\texttt{lake build} 报 \texttt{module} 建议 & mathlib v4.36 的模块系统提示，纯属建议，不影响结果\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{小结}
+\label{sec:07-summary}
+
+本章你已经看到：一个经典的初等证明如何被拆成"库定理 + 战术"，
+一个无穷乘积如何退化为可计算的有限恒等式，
+以及一个解析数论定理如何变成一个类型正确的 \texttt{example}。
+下一章做最后一步：把 $\zeta$、函数方程、黎曼猜想本身写进 \texttt{Lean}。

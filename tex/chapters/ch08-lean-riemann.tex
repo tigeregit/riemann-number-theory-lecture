@@ -1,0 +1,210 @@
+\chapter{把黎曼写进 Lean：陈述、边界与诚实}
+\label{chap:lean-riemann}
+
+\begin{keybox}[本章要点]
+mathlib v4.36.0 已经含有解析延拓后的 $\zeta$、函数方程、平凡零点，
+甚至直接定义了 \texttt{RiemannHypothesis}。本章展示：
+如何把百万美元难题写成一行 \texttt{def}，如何推导它的一个等价版本，
+以及——更重要的——\emph{怎样诚实地"陈述"而不是假装"证明"}。
+\end{keybox}
+
+\section{mathlib 里已经有什么}
+\label{sec:08-what-exists}
+
+用 \texttt{\#check} 查一下（下面是真实输出）：
+
+\begin{lstlisting}[language=Lean,numbers=none,frame=none,xleftmargin=0pt]
+#check riemannZeta
+-- riemannZeta (a : ℂ) : ℂ
+
+#check completedRiemannZeta₀_one_sub
+-- completedRiemannZeta₀_one_sub (s : ℂ) :
+--     completedRiemannZeta₀ (1 - s) = completedRiemannZeta₀ s
+
+#check zeta_eq_tsum_one_div_nat_cpow
+-- zeta_eq_tsum_one_div_nat_cpow {s : ℂ} (hs : 1 < s.re) :
+--     riemannZeta s = ∑' n : ℕ, 1 / (n : ℂ) ^ s
+
+#check RiemannHypothesis
+-- RiemannHypothesis : Prop
+\end{lstlisting}
+
+几点说明：
+
+\begin{itemize}
+  \item \texttt{riemannZeta : ℂ → ℂ} 是\emph{已经解析延拓到全平面}的 $\zeta$。
+        它并不是用 $\sum n^{-s}$ 定义的（那个级数在 $\Ree s\le1$ 发散），
+        而是用 Hurwitz zeta / Mellin 变换构造的；
+        \texttt{zeta\_eq\_tsum\_one\_div\_nat\_cpow} 才说明在 $\Ree s>1$
+        时它等于欧拉的级数。这正是 \cref{thm:02-continuation} 的形式化版本。
+  \item \texttt{completedRiemannZeta₀} 类似第一编的 $\Lambda_0(s)$ 去掉极点后的整函数；
+        上面的定理就是函数方程 $\Lambda_0(1-s)=\Lambda_0(s)$。
+  \item \texttt{∑'} 是拓扑无穷和（\texttt{tsum}）；\texttt{(n : ℂ) \textasciicircum{} s}
+        用了复数幂 \texttt{cpow}。这些在第一编里是"显然收敛"的东西，
+        在类型里必须写清楚。
+\end{itemize}
+
+\section{函数方程：纸面与机器}
+\label{sec:08-fe}
+
+第一编 \cref{eq:02-fe3} 写成
+\[
+  \zeta(1-s)=2\,(2\pi)^{-s}\cos\!\left(\frac{\pi s}{2}\right)\Gamma(s)\,\zeta(s).
+\]
+mathlib 的 \texttt{riemannZeta\_one\_sub} 是（真实类型）：
+
+\begin{lstlisting}[language=Lean,numbers=none,frame=none,xleftmargin=0pt]
+theorem riemannZeta_one_sub {s : ℂ} (hs : ∀ n : ℕ, s ≠ -n) (hs' : s ≠ 1) :
+    riemannZeta (1 - s) =
+      2 * (2 * ↑Real.pi) ^ (-s) * Complex.Gamma s
+        * Complex.cos (↑Real.pi * s / 2) * riemannZeta s
+\end{lstlisting}
+
+对照一下，会发现两件很有教育意义的事：
+
+\begin{enumerate}[label=\arabic*.]
+  \item \emph{附加条件}。纸面上常省略"避开 $\Gamma$ 的极点"这类条件；
+        这里必须显式写成 \texttt{hs : ∀ n, s ≠ -n} 与 \texttt{hs' : s ≠ 1}。
+        形式化迫使我们把定理的适用范围说完整。
+  \item \emph{名称与记号的差异}。纸面写 $\pi$，机器写 \texttt{↑Real.pi}
+        （把实数 $\pi$ 嵌入 $\C$）；纸面写 $\Gamma(s)$，机器写 \texttt{Complex.Gamma s}。
+        这类"强制转换"在纸面上通常被省略，在类型里躲不掉。
+\end{enumerate}
+
+\section{把黎曼猜想写成一行 \texttt{def}}
+\label{sec:08-rh}
+
+mathlib 的原文（\texttt{Mathlib/NumberTheory/LSeries/RiemannZeta.lean}）是：
+
+\begin{lstlisting}[language=Lean,numbers=none,frame=none,xleftmargin=0pt]
+/-- A formal statement of the **Riemann hypothesis** - constructing a term
+of this type is worth a million dollars. -/
+@[wikidata Q205966]
+def RiemannHypothesis : Prop :=
+  ∀ (s : ℂ) (_ : riemannZeta s = 0) (_ : ¬∃ n : ℕ, s = -2 * (n + 1))
+    (_ : s ≠ 1), s.re = 1 / 2
+\end{lstlisting}
+
+读法：对任意 $s$，若 $\zeta(s)=0$、且 $s$ 不是平凡零点
+$-2,-4,-6,\dots$、且 $s\ne1$（极点），则 $\Ree s=1/2$。
+
+\begin{histbox}[库作者的幽默]
+那句 \texttt{constructing a term of this type is worth a million dollars}
+不是玩笑话的夸张：克雷数学所确实为 RH 的证明悬赏一百万美元
+\cite{clay2000}。而 \texttt{Lean} 里的"构造一个该类型的项"
+恰恰就是"给出一个证明"。数学、逻辑与奖金在这里合成了一句话。
+\end{histbox}
+
+请注意 \texttt{RiemannHypothesis} 是一个 \texttt{Prop}，\emph{不是}带证明的数据：
+\texttt{\#check RiemannHypothesis} 打印 \texttt{RiemannHypothesis : Prop}。
+mathlib 里没有任何 \texttt{theorem RH\_proof : RiemannHypothesis}——
+它只是被\emph{陈述}出来了。
+
+\section{推导一个等价版本（真证明）}
+\label{sec:08-critical}
+
+教科书常用的说法是"临界带内的零点都在临界线上"。我们把这句话写成
+\texttt{RH\_CriticalStrip}，并证明 \emph{mathlib 的 RH 蕴含它}：
+
+\leanfile[caption={lean/Riemann/ZetaStatements.lean},label={lst:zetastat}]{../lean/Riemann/ZetaStatements.lean}
+
+\texttt{RH\_implies\_criticalStrip} 的证明做了两件小事：
+
+\begin{enumerate}[label=\arabic*.]
+  \item 若 $s$ 是平凡零点 $s=-2(n+1)$，代入后
+        \texttt{norm\_num} 把 $\Ree s$ 化简成 $2(n+1)<0$ 的形式，
+        与前提 \texttt{hpos : 0 < s.re} 矛盾（\texttt{nlinarith} 收尾）。
+  \item 若 $s=1$，与 \texttt{hlt : s.re < 1} 矛盾。
+\end{enumerate}
+
+\begin{warnbox}[为什么反过来难]
+反方向（临界带版本 $\Rightarrow$ mathlib 版本）需要证明：
+\emph{任何}非平凡零点都满足 $0<\Ree s<1$。这依赖第一编
+\cref{thm:02-zeros} 中"$\Ree s=1$ 上无零点"这样的深层定理，
+不是几行战术能完成的。所以文件里只证明了一个方向，并在注释里说清楚。
+\emph{知道哪一步欠着，比假装证完更重要。}
+\end{warnbox}
+
+\section{如何"陈述"一个还没证明的东西}
+\label{sec:08-honest}
+
+形式化一个开放问题时，正确姿势是：\emph{精确陈述，留空证明}，
+而且不偷偷引入 \texttt{axiom}。练习文件里给出一个例子：
+
+\begin{lstlisting}[language=Lean,numbers=none,frame=none,xleftmargin=0pt]
+def EulerProductHolds : Prop :=
+  ∀ s : ℂ, 1 < Complex.re s →
+    riemannZeta s = ∏' p : { p : ℕ // p.Prime },
+                       1 / (1 - (p : ℂ) ^ (-s))
+\end{lstlisting}
+
+它把 \cref{thm:01-euler} 推广到复数 $s$ 并用无穷乘积 \texttt{∏'} 表达；
+类型正确，但本项目没有给出证明（练习题第 4 题只要求\emph{陈述}）。
+对比三种做法：
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.34\textwidth}p{0.60\textwidth}@{}}
+\toprule
+\textbf{做法} & \textbf{评价}\\
+\midrule
+\texttt{def P : Prop := ...} & 正确：只定义命题\\
+\texttt{axiom h : P} & 危险：把猜想当成公理，后续所有"证明"都不可信\\
+\texttt{theorem t : P := by sorry} & 自欺：看起来是定理，其实有洞\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{keybox}[形式化的伦理]
+\texttt{sorry} 与 \texttt{axiom} 本身不是坏事——它们是显式声明的"欠条"。
+坏事是把欠条藏起来，或者用 \texttt{axiom} 让一个假命题看起来被证明了。
+\texttt{Lean} 的价值之一，就是让欠条\emph{无处可藏}。
+\end{keybox}
+
+\section{练习题}
+\label{sec:08-exercises}
+
+\leanfile[caption={lean/Riemann/Exercises.lean（故意含 sorry）},label={lst:exercises}]{../lean/Riemann/Exercises.lean}
+
+六道题的难度与提示都写在注释里。做完后 \texttt{lake build} 不再打印
+\texttt{sorry} 警告，就是通关标志。附录~\ref{app:exercises} 给出提示与部分答案。
+
+\section{从这里往哪里走}
+\label{sec:08-next}
+
+\begin{description}[leftmargin=2.2em]
+  \item[查库] \texttt{loogle.lean-lang.org}（按类型搜索定理）、
+        \texttt{leansearch.net}、mathlib 文档\cite{mathlib4}、
+        VS Code 的自动补全与 \texttt{\#check}。
+  \item[读库] \texttt{Mathlib/NumberTheory/LSeries/RiemannZeta.lean}、
+        \texttt{WeakPNT.lean}、\texttt{PrimeCounting.lean} 都值得读；
+        你会发现形式化里的 $\zeta$ 用 Hurwitz zeta 与 Mellin 变换构造，
+        与第一编的 $\theta$ 函数路线不同但等价。
+  \item[教材] \emph{Mathematics in Lean}\cite{mil2023}、
+        \emph{Theorem Proving in Lean 4}\cite{lean4ref}。
+  \item[进阶] 试着把 \cref{thm:01-euler} 的有限证明推广成
+        \texttt{EulerProductHolds} 的真证明（需要 Dirichlet 级数与收敛性的
+        大量基础设施）；或者给 \texttt{Exercises.lean} 第 5 题补上
+        "RH $\Rightarrow$ 误差项"的陈述。
+\end{description}
+
+\section{第二编总结}
+\label{sec:08-summary}
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.30\textwidth}p{0.64\textwidth}@{}}
+\toprule
+\textbf{你学到的} & \textbf{对应章节}\\
+\midrule
+命题即类型、可信内核、信任清单 & \cref{chap:lean-intro}\\
+欧几里得定理的逐战术拆解 & \cref{sec:07-euclid}\\
+有限欧拉乘积 = 唯一分解 + 计算 & \cref{sec:07-eulerproduct}\\
+M\"obius 反演 = 卷积逆 & \cref{sec:07-moebius}\\
+$\pi$、单调性、素数定理的\emph{陈述} & \cref{sec:07-pnt}\\
+$\zeta$、函数方程、RH 的形式化 & \cref{chap:lean-riemann}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+最后一句：第一编里黎曼把素数变成零点，第二编里我们把零点变成类型。
+这两件事其实共享同一个信念——\emph{把模糊的东西放到精确的语言里，
+它才会真正被理解}。

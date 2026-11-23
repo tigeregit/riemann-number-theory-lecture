@@ -1,0 +1,220 @@
+\chapter{显式公式：零点怎样"谱分解"素数}
+\label{chap:explicit}
+
+\begin{keybox}[本章要点]
+把 $\log\zeta(s)$ 做 Mellin 反演，得到
+$J(x)=\Li(x)-\sum_\rho\Li(x^\rho)+\text{常数}+\text{平凡零点项}$。
+每个非平凡零点贡献一项形如 $x^\rho/\rho$ 的"波"；黎曼猜想等价于这些波的振幅
+被压到最小。再用 M\"obius 反演把 $J$ 变回 $\pit$。
+\end{keybox}
+
+\section{为什么不直接对 $\pit$ 反演}
+\label{sec:03-J}
+
+$\pit$ 在每个素数处跳 $1$，是个阶梯函数；它的 Dirichlet 级数并不干净。
+黎曼改用一个加权计数函数（他记为 $f(x)$，今日常记 $J(x)$ 或 $\Pi(x)$）：
+
+\begin{definition}\label{def:03-J}
+\begin{equation}\label{eq:03-J}
+  J(x)=\sum_{n=1}^{\infty}\frac1n\,\pi\!\left(x^{1/n}\right)
+  =\sum_{p^m\le x}\frac1m,
+  \qquad
+  J_0(x)=\tfrac12\bigl(J(x+0)+J(x-0)\bigr).
+\end{equation}
+\end{definition}
+
+$J$ 在 $x=p^m$ 处跳 $1/m$。关键是：由 \cref{eq:01-logzeta}
+\begin{equation}\label{eq:03-logzeta}
+  \log\zeta(s)=\sum_p\sum_{m\ge1}\frac{1}{m}p^{-ms}
+  =\sum_{n\ge2}\frac{\Lmb(n)}{\log n}\,n^{-s},
+\end{equation}
+也就是说 $\log\zeta(s)$ 恰好是 $J$ 的 Dirichlet 级数。
+$J_0$ 的约定是为了在跳点处取左右极限的平均（傅里叶反演的标准做法）。
+
+\section{$\zeta$ 的对数导数（完整证明）}
+\label{sec:03-logderiv}
+
+\begin{theorem}\label{thm:03-logderiv}
+对 $\Ree s>1$，
+\begin{equation}\label{eq:03-logderiv}
+  -\frac{\zeta'(s)}{\zeta(s)}=\sum_{n=1}^{\infty}\frac{\Lmb(n)}{n^{s}},
+  \qquad
+  \Lmb(n)=\begin{cases}\log p,& n=p^m,\\ 0,&\text{否则}.\end{cases}
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+对 \cref{eq:01-logzeta} 逐项求导（$\Ree s>1$ 时绝对一致收敛，合法）：
+$-\frac{\dd}{\dd s}\frac{1}{m}p^{-ms}=\log p\cdot p^{-ms}$。
+于是 $-\zeta'/\zeta=\sum_p\sum_{m\ge1}(\log p)p^{-ms}$。
+把 $n=p^m$ 的项合并，$\Lmb(p^m)=\log p$，即得 \cref{eq:03-logderiv}。
+\end{proof}
+
+\begin{remark}
+$-\zeta'/\zeta$ 的极点恰好在 $\zeta$ 的极点与零点处：在零点 $\rho$ 处留数为
+$-1$（重数计），在 $s=1$ 处留数为 $+1$。\emph{这个"极点清单"就是下一节
+围道移项时要捡起来的东西。}
+\end{remark}
+
+\section{Perron / Mellin 反演（结构证明 $\star$）}
+\label{sec:03-perron}
+
+\begin{lemma}[Perron 公式]\label{lem:03-perron}
+设 $c>0$，$y>0$，则
+\begin{equation}\label{eq:03-perron}
+  \frac{1}{2\pi\iu}\int_{c-\iu\infty}^{c+\iu\infty}\frac{(x/y)^{s}}{s}\,\dd s
+  =\begin{cases}1,& y<x,\\[2pt] \tfrac12,& y=x,\\[2pt]0,& y>x.\end{cases}
+\end{equation}
+\end{lemma}
+
+\begin{proof}[证明思路]
+$y<x$ 时把围道向右闭合（$|x/y|>1$，右半平面上的大圆弧贡献趋于 $0$），
+只包住 $s=0$ 的极点，留数 $1$；$y>x$ 时向左闭合，不包住任何极点，得 $0$；
+$y=x$ 时积分取主值，得 $1/2$。严格化需要截断与衰减估计，见
+\cref{app:analysis}。
+\end{proof}
+
+对 $\log\zeta(s)=\sum_p\sum_m \frac1m p^{-ms}$ 逐项套用 \cref{lem:03-perron}
+（$y=p^m$），得到对 $c>1$：
+\begin{equation}\label{eq:03-J-integral}
+  J_0(x)=\frac{1}{2\pi\iu}\int_{c-\iu\infty}^{c+\iu\infty}
+  \log\zeta(s)\,\frac{x^{s}}{s}\,\dd s .
+\end{equation}
+这一步是"频域 $\to$ 时域"的反变换：把 Dirichlet 级数里的每一项 $n^{-s}$
+还原成阶跃函数。
+
+\section{移项与显式公式（陈述 + 逐项解释）}
+\label{sec:03-explicit}
+
+把 \cref{eq:03-J-integral} 的积分路径从 $\Ree s=c>1$ 向左移到 $\Ree s=-K$，
+围道扫过的奇点贡献留数。奇点来自两处：
+\begin{itemize}
+  \item $s=1$：$\zeta$ 的极点（$\log\zeta$ 的对数奇点）；
+  \item $s=\rho, -2, -4,\dots$：$\zeta$ 的零点（$\log\zeta$ 的对数奇点）。
+\end{itemize}
+把 Hadamard 乘积 \cref{eq:02-hadamard} 代入 $\log\zeta$ 并整理
+（技术细节见 \cite{edwards2001} 第 3 章），得到黎曼的\emph{显式公式}：
+
+\begin{theorem}[Riemann 显式公式，1859]\label{thm:03-explicit}
+对 $x>1$，
+\begin{equation}\label{eq:03-explicit}
+  J_0(x)=\Li(x)-\sum_{\rho}\Li\!\left(x^{\rho}\right)-\log 2
+  +\int_x^{\infty}\frac{\dd t}{t(t^2-1)\log t},
+\end{equation}
+其中 $\rho$ 跑遍非平凡零点，求和按 $|\Imm\rho|$ 对称取极限；
+$\Li(x^\rho)$ 定义为 $\int_0^x t^{\rho-1}\dd t/\log t=\operatorname{Ei}(\rho\log x)$。
+\end{theorem}
+
+逐项读一遍 \cref{eq:03-explicit}，这是本章最重要的事：
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.30\textwidth}p{0.64\textwidth}@{}}
+\toprule
+\textbf{项} & \textbf{来源与含义}\\
+\midrule
+$\Li(x)\sim x/\log x$ & $s=1$ 的极点。\emph{主项}，正是高斯猜测的渐近式\\
+$-\sum_\rho\Li(x^\rho)$ & 每个非平凡零点贡献一项。$\abs{x^\rho}=x^{\Ree\rho}$，
+  故它是振幅随 $x^{\Ree\rho}$ 增长、频率由 $\Imm\rho$ 决定的"波"\\
+$-\log 2$ & 来自 $\zeta(0)=-1/2$ 与 $\Gamma$ 的常数\\
+$\int_x^\infty\frac{\dd t}{t(t^2-1)\log t}$ & 平凡零点 $s=-2,-4,\dots$ 的贡献；
+  对大 $x$ 只有 $\bigO(1/x)$，可忽略\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{keybox}["谱分解"的读法]
+把 $\pit$ 想成一个信号：
+\[
+  \pit\;=\;\underbrace{\text{平滑趋势 } \Li(x)}_{\text{"直流分量"}}
+  \;+\;\underbrace{\sum_{\rho}\text{（振幅 } x^{\Ree\rho}/\abs{\rho}\text{，频率 } \Imm\rho\text{）}}_{\text{"交流分量，由零点决定"}}
+  \;+\;\text{小修正}.
+\]
+零点就是素数分布的\emph{频谱}。黎曼猜想 $\Ree\rho=1/2$ 意味着所有交流分量的振幅
+都被压到 $\sqrt{x}$ 量级——素数序列因此"尽可能规则"。
+\end{keybox}
+
+\section{M\"obius 反演：从 $J$ 回到 $\pit$（完整证明）}
+\label{sec:03-moebius}
+
+\cref{def:03-J} 定义了算子
+$(Tf)(x)=\sum_{n\ge1}\frac1n f(x^{1/n})$，且 $J=T\pi$。
+
+\begin{theorem}[M\"obius 反演]\label{thm:03-moebius}
+\begin{equation}\label{eq:03-moebius}
+  \pit=\sum_{n=1}^{\infty}\frac{\mu(n)}{n}\,J\!\left(x^{1/n}\right).
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+记 $a_n=1/n$，$b_n=\mu(n)/n$。形式地
+\[
+  \sum_{n}\frac{\mu(n)}{n}J(x^{1/n})
+  =\sum_{n}\sum_{m}\frac{\mu(n)}{nm}\,\pi\!\left(x^{1/(nm)}\right)
+  =\sum_{k}\left(\sum_{n\mid k}\frac{\mu(n)}{k}\right)\pi\!\left(x^{1/k}\right).
+\]
+内层 $\sum_{n\mid k}\mu(n)=1$ 当 $k=1$，否则为 $0$（M\"obius 函数的基本恒等式）。
+故只剩 $k=1$ 项 $=\pit$。收敛性由 $\sum|\mu(n)|/n$ 的截断估计保证。
+\end{proof}
+
+把 \cref{eq:03-explicit} 代入 \cref{eq:03-moebius}，得到常用的"主项 + 波动"写法：
+\begin{equation}\label{eq:03-pi-approx}
+  \pit=\underbrace{\sum_{n\ge1}\frac{\mu(n)}{n}\Li\!\left(x^{1/n}\right)}_{\text{Riemann }R(x)}
+  \;-\;\sum_{n\ge1}\frac{\mu(n)}{n}\sum_{\rho}\Li\!\left(x^{\rho/n}\right)
+  \;+\;\bigO(1).
+\end{equation}
+第一项 $R(x)$ 是"不含零点信息"的最佳平滑近似，数值上比 $\Li(x)$ 更贴近 $\pit$。
+
+\section{误差项与黎曼猜想}
+\label{sec:03-error}
+
+由 $\abs{x^\rho}=x^{\Ree\rho}$，显式公式中零点求和的大小主要由
+$\max_\rho\Ree\rho$ 决定。若 RH 成立，$\Ree\rho=1/2$，粗略计数
+（用 $N(T)$ 公式 \cref{eq:02-NT}）给出
+$\sum_\rho\abs{\Li(x^\rho)}\lesssim\sqrt{x}\,\log x$，于是
+
+\begin{theorem}[von Koch, 1901]\label{thm:03-vonkoch}
+$\mathrm{RH}\iff\pit=\Li(x)+\bigO\!\left(\sqrt{x}\log x\right)$。
+\end{theorem}
+
+不假设 RH 时，已知最好的无条件误差项来自 Korobov--Vinogradov 零自由区域：
+$\pit=\Li(x)+\bigO\!\left(x\exp\{-c(\log x)^{3/5}(\log\log x)^{-1/5}\}\right)$。
+与 $\sqrt{x}$ 相比差距很大——这就是 RH 的分量。
+
+\begin{table}[htbp]
+\centering
+\caption{$\pit$ 与两种近似（数据由 \texttt{scripts/gen\_data.py} 生成）。
+注意 $\Li(x)$ 始终略大；$x/\log x$ 明显偏小。}
+\label{tab:03-pi}
+\begin{tabular}{rrrr}
+\toprule
+$x$ & $\pit$ & $\Li(x)$ & $x/\log x$\\
+\midrule
+$100$      & $25$   & $29.1$   & $21.7$\\
+$1\,000$   & $168$  & $176.6$  & $144.8$\\
+$10\,000$  & $1\,229$ & $1\,245.1$ & $1\,085.7$\\
+$50\,000$  & $5\,133$  & $5\,165.5$  & $4\,621.2$\\
+$100\,000$ & $9\,592$  & $9\,628.8$  & $8\,685.9$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{remark}[一个反直觉的事实]
+在 \cref{tab:03-pi} 的范围内 $\Li(x)>\pit$，高斯、黎曼时代的所有数值都支持这一点。
+但 Littlewood 1914 年证明 $\Li(x)-\pit$ 会无穷多次变号；第一个变号点
+（Skewes 数）大得惊人。这说明"数值证据"在数论里必须小心使用。
+\end{remark}
+
+\section{小结}
+\label{sec:03-summary}
+
+显式公式完成了一个闭环：
+\[
+  \underbrace{\prod_p(1-p^{-s})^{-1}}_{\text{素数}}
+  \;\xrightarrow{\ \log\ }\;
+  \underbrace{\log\zeta(s)}_{\text{解析对象}}
+  \;\xrightarrow{\ \text{Hadamard}\ }\;
+  \underbrace{\sum_\rho}_{\text{零点}}
+  \;\xrightarrow{\ \text{Perron}\ }\;
+  \underbrace{J(x)\ \to\ \pit}_{\text{素数（回来）}} .
+\]
+下一章讨论由此引出的两件大事：素数定理（1896）与黎曼猜想（至今）。

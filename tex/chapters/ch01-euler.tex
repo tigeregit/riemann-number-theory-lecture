@@ -1,0 +1,243 @@
+\chapter{欧拉：把素数装进一个函数}
+\label{chap:euler}
+
+\begin{keybox}[本章要点]
+欧拉在 1737 年发现：一个关于\emph{所有整数}的级数，等于一个关于\emph{所有素数}的乘积。
+这是解析数论的起点。本章给出完整证明，并导出 $\sum_p 1/p=\infty$；
+然后介绍高斯、勒让德、切比雪夫对 $\pit$ 的猜测与估计，最后解释为什么必须让 $s$ 取复数值。
+\end{keybox}
+
+\section{算术基本定理}
+\label{sec:01-fta}
+
+\begin{theorem}[算术基本定理]
+每个整数 $n\ge 2$ 都可以唯一地写成
+\begin{equation}\label{eq:01-fta}
+  n=p_1^{a_1}p_2^{a_2}\cdots p_k^{a_k},
+\end{equation}
+其中 $p_1<p_2<\cdots<p_k$ 是素数，$a_i\ge 1$；不计因子次序时写法唯一。
+\end{theorem}
+
+存在性用强归纳法；唯一性依赖欧几里得引理：若 $p$ 为素数且 $p\mid ab$，则
+$p\mid a$ 或 $p\mid b$。这份讲义把 \cref{eq:01-fta} 当作已知，但值得注意：
+\emph{正是这个"唯一分解"，使下面的欧拉乘积成立}。在 \cref{chap:lean-core}
+我们会看到 \texttt{Lean} 里如何把"唯一分解"变成一个可检验的命题。
+
+\section{欧拉乘积公式（完整证明）}
+\label{sec:01-euler-product}
+
+\begin{definition}[Dirichlet 级数与 $\zeta$]
+对复数 $s=\sigma+\iu t$，当 $\sigma>1$ 时级数
+\begin{equation}\label{eq:01-zeta}
+  \zeta(s)=\sum_{n=1}^{\infty}\frac{1}{n^{s}}
+\end{equation}
+绝对收敛，因为 $\abs{n^{-s}}=n^{-\sigma}$ 且 $\sum n^{-\sigma}<\infty$。
+先只把 $s$ 看成实数 $\sigma>1$ 也无妨。
+\end{definition}
+
+\begin{theorem}[欧拉乘积公式，Euler 1737]\label{thm:01-euler}
+设 $\Ree s>1$，则
+\begin{equation}\label{eq:01-prod}
+  \zeta(s)=\prod_{p}\frac{1}{1-p^{-s}}
+  =\prod_p\bigl(1+p^{-s}+p^{-2s}+\cdots\bigr),
+\end{equation}
+右边的无穷乘积绝对收敛。
+\end{theorem}
+
+\begin{proof}
+分三步。
+
+\textbf{第一步：有限乘积展开。} 取有限素数集 $P$。对每个 $p\in P$，几何级数
+$\sum_{k\ge0}p^{-ks}=(1-p^{-s})^{-1}$ 绝对收敛。把有限个绝对收敛级数相乘，
+可以逐项相乘并把结果重排：
+\begin{equation}\label{eq:01-finite}
+  \prod_{p\in P}\sum_{k\ge0}p^{-ks}
+  =\sum_{\substack{n\ge1\\ \text{$n$ 的素因子全在 $P$ 中}}}\frac{1}{n^{s}}.
+\end{equation}
+这里每一项对应一组指数 $(k_p)_{p\in P}$，由算术基本定理，
+$n=\prod_{p\in P}p^{k_p}$ 与指数数组一一对应。注意这是\emph{有限}个级数的乘积，
+所以重排没有一致收敛的困难。
+
+\textbf{第二步：让 $P$ 变大。} 取 $P=P_N=\{p\le N\}$。若 $n\le N$，
+则 $n$ 的所有素因子都不超过 $n\le N$，故 $n$ 出现在 \cref{eq:01-finite} 右端。于是
+\begin{equation}\label{eq:01-sandwich}
+  \sum_{n\le N}\frac{1}{n^{\sigma}}
+  \;\le\;
+  \prod_{p\le N}\sum_{k\ge0}p^{-k\sigma}
+  \;\le\;
+  \sum_{n=1}^{\infty}\frac{1}{n^{\sigma}}
+  =\zeta(\sigma).
+\end{equation}
+（左、右两端都取了绝对值，故只需实部 $\sigma=\Ree s$。）
+
+\textbf{第三步：夹逼。} 令 $N\to\infty$，左端 $\to\zeta(\sigma)$。
+所以有限乘积收敛到 $\zeta(s)$（对复数 $s$，可用同样的尾项估计
+$\bigabs{\prod_{p\le N}(1-p^{-s})^{-1}-\sum_{n\le N}n^{-s}}
+\le\sum_{n>N}n^{-\sigma}\to0$ 得到）。
+\end{proof}
+
+\begin{remark}
+\cref{eq:01-prod} 的左边完全不提素数，右边只提素数。这就像把一个系统的
+"时域描述"与"频域描述"等同起来：\emph{整数的加法结构里，藏着素数的乘法结构}。
+\end{remark}
+
+\section{素数无穷多，而且不算太少（完整证明）}
+\label{sec:01-infinite}
+
+\begin{theorem}[Euclid / Euler]
+素数有无穷多个；更强地，$\displaystyle\sum_p \frac1p=\infty$。
+\end{theorem}
+
+\begin{proof}
+用欧拉乘积取对数。由 $\log\frac1{1-x}=\sum_{k\ge1}\frac{x^k}{k}$，对 $\sigma>1$ 有
+\begin{equation}\label{eq:01-logzeta}
+  \log\zeta(\sigma)
+  =\sum_p\sum_{k\ge1}\frac{p^{-k\sigma}}{k}
+  =\sum_p\frac{1}{p^{\sigma}}
+   +\sum_p\sum_{k\ge2}\frac{1}{k\,p^{k\sigma}}.
+\end{equation}
+第二项对一切 $\sigma\ge1$ 有界：
+$\sum_{k\ge2}\frac{1}{k p^{k\sigma}}\le\sum_{k\ge2}p^{-k}
+=\frac{1}{p(p-1)}\le\frac{2}{p^2}$，故总和 $\le 2\sum_n n^{-2}<\infty$。
+另一方面 $\zeta(\sigma)\to\infty$（调和级数发散）当 $\sigma\to1^+$。
+
+于是 $\sum_p p^{-\sigma}\to\infty$ 当 $\sigma\to1^+$。
+若 $\sum_p 1/p$ 收敛，则由单调收敛（或控制收敛）$\sum_p p^{-\sigma}$
+应在 $\sigma\to1^+$ 时有有限极限，矛盾。故 $\sum_p 1/p$ 发散，
+特别地素数不能只有有限个。
+\end{proof}
+
+\begin{exercise}[初等版本]
+不用 $\zeta(s)$：由 $\prod_{p\le N}(1-1/p)^{-1}\ge\sum_{n\le N}1/n=H_N$
+以及 $-\log(1-x)\le x+2x^2$（$0\le x\le1/2$），证明
+$\sum_{p\le N}1/p\ge\log\log N-\bigO(1)$。
+\end{exercise}
+
+注意 $\sum 1/p$ 发散得很慢（$\sim\log\log N$）——这已经暗示
+$\pi(x)$ 大约长成 $x/\log x$：如果随机整数 $n$ 是素数的概率约为 $1/\log n$，
+则 $\sum_{n\le x}1/\log n\sim x/\log x$。下一节把它说精确。
+
+\section{素数有多密：$\pi(x)$、$\Li(x)$ 与切比雪夫}
+\label{sec:01-density}
+
+\begin{definition}
+$\pit=\#\{p\le x:\ p\ \text{为素数}\}$。又定义两个切比雪夫加权计数函数
+\begin{equation}\label{eq:01-psi-theta}
+  \psi(x)=\sum_{p^k\le x}\log p
+  =\sum_{n\le x}\Lmb(n),\qquad
+  \theta(x)=\sum_{p\le x}\log p .
+\end{equation}
+\end{definition}
+
+$\psi$ 比 $\pi$ 好用的原因：$\Lmb(n)$ 让"素数幂"带上了自然的权重 $\log p$，
+取对数导数时不会留下讨厌的常数（见 \cref{sec:03-logderiv}）。
+
+\begin{histbox}[高斯与勒让德]
+1792 年前后，15 岁的高斯根据素数表猜测 $\pit\sim \Li(x)\sim x/\log x$；
+勒让德 1798 年给出 $\pit\approx x/(A\log x+B)$ 的经验公式。
+1849 年高斯在给 Encke 的信中回忆了这一猜测。黎曼 1859 年的论文，
+目标正是给这类猜测一个\emph{精确的公式}，而不只是渐近式。
+\end{histbox}
+
+\begin{theorem}[Chebyshev, 1848/1850]
+存在常数 $0<c_1<1<c_2$，使充分大的 $x$ 满足
+$c_1\dfrac{x}{\log x}\le\pit\le c_2\dfrac{x}{\log x}$；
+具体地可取 $c_1\approx0.92,\ c_2\approx1.11$。等价地 $\psi(x)\asymp x$。
+并且：若极限 $\lim \pit\log x/x$ 存在，则必等于 $1$。
+\end{theorem}
+
+切比雪夫的证明完全是初等的：估计中心二项式系数
+$\binom{2n}{n}$ 的素因子分解，由此得到 $\psi(2n)-\psi(n)$ 的上下界，
+顺带证明了伯特兰定理（$n$ 与 $2n$ 之间必有素数）。
+这是"用组合数把素数信息挤出来"的漂亮范例，但已偏离主线，从略。
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+  width=0.92\textwidth, height=7.2cm,
+  xlabel={$x$}, ylabel={$\pi(x)$ 与近似},
+  xmin=0, xmax=100000, ymin=0, ymax=10200,
+  legend pos=north west, legend cell align=left,
+  grid=both, grid style={gray!20},
+  xtick={0,20000,40000,60000,80000,100000},
+  scaled x ticks=false,
+  tick label style={font=\scriptsize},
+  every axis legend/.append style={font=\small}
+]
+\addplot[blue!70!black,thick,no marks] table[x index=0,y index=1] {data/pi_li.dat};
+\addplot[red!70!black,thick,dashed,no marks] table[x index=0,y index=2] {data/pi_li.dat};
+\addplot[green!45!black,thick,dotted,no marks] table[x index=0,y index=3] {data/pi_li.dat};
+\legend{$\pi(x)$（真值）,$\Li(x)=\int_2^x dt/\log t$,$x/\log x$}
+\end{axis}
+\end{tikzpicture}
+\caption{$\pit$、对数积分与 $x/\log x$（数据由 \texttt{scripts/gen\_data.py} 生成）。
+$\Li(x)$ 明显优于 $x/\log x$；在图示范围内始终有 $\Li(x)>\pit$，
+但李特尔伍德 1914 年证明 $\Li(x)-\pit$ 会无穷多次变号。}
+\label{fig:01-pi-li}
+\end{figure}
+
+\section{狄利克雷：把欧拉乘积再推广一次}
+\label{sec:01-dirichlet}
+
+1837 年，黎曼在柏林的老师狄利克雷（Dirichlet）研究等差数列
+$a,\ a+q,\ a+2q,\dots$（$(a,q)=1$）中的素数。他引入\emph{特征}
+$\chi:\Z\to\C$（周期为 $q$、完全积性、$(n,q)>1$ 时取 $0$），并构造
+\begin{equation}\label{eq:01-L}
+  L(s,\chi)=\sum_{n\ge1}\frac{\chi(n)}{n^s}
+  =\prod_p\frac{1}{1-\chi(p)p^{-s}},
+\end{equation}
+证明 $L(1,\chi)\ne0$，从而 $\sum_{p\equiv a\ (\mathrm{mod}\ q)}1/p=\infty$，
+于是每个这样的等差数列里都有无穷多素数。
+
+这件事对黎曼有双重意义：
+\begin{enumerate}[label=(\roman*)]
+  \item 它证明"把素数问题变成 $L$ 函数的解析问题"是极其有效的路线；
+  \item 它说明 $\zeta(s)$ 只是无穷多个 $L$ 函数中的一个，
+        函数方程、零点、广义黎曼猜想（GRH）都是同一套结构的不同实例。
+\end{enumerate}
+今天这被称为"解析数论的开端"\cite{davenport2000}。
+
+\section{为什么必须让 $s$ 变成复数}
+\label{sec:01-complex}
+
+到 \cref{sec:01-density} 为止，$s$ 只取实数就够了。但下面三个理由迫使我们把
+$s$ 看作复变量：
+
+\begin{enumerate}[label=\arabic*.]
+  \item \textbf{极点与零点只在复平面里可见。}
+        实轴上 $\zeta(\sigma)$ 对 $\sigma>1$ 单调、恒正，没有零点；
+        只有进入复平面，$\zeta(s)$ 才会有零点 $\rho$，才有"频谱"可言。
+  \item \textbf{反演公式需要沿竖直直线积分。}
+        要从 Dirichlet 级数 $\sum a_n n^{-s}$ 恢复系数（从而恢复 $\pit$），
+        需要 Mellin/Perron 反演 $a_n\sim\frac{1}{2\pi\iu}\int F(s)x^s\frac{\dd s}{s}$，
+        积分路径是复平面里的竖线 $\Ree s=c$。
+  \item \textbf{函数方程是复平面上的对称。}
+        $s\leftrightarrow 1-s$ 把右半平面映到左半平面；只有承认复变量，
+        才能把"$\zeta$ 在 $\Ree s<0$ 的值"与"$\Ree s>1$ 的值"联系起来。
+\end{enumerate}
+
+\begin{histbox}[给工程师的类比]
+$\zeta(s)$ 相当于素数序列的"Z 变换"（把 $n$ 换成 $n^{-s}=e^{-s\log n}$，
+即对数坐标下的拉普拉斯变换）。$s=1$ 处的极点决定信号的直流增益
+（也就是 $\pit\sim x/\log x$ 的主项）；零点的实部决定瞬态衰减速度
+（也就是误差项的阶）。黎曼猜想说的正是：所有瞬态都以最优速率 $\sqrt{x}$ 衰减。
+\end{histbox}
+
+\section{小结}
+\label{sec:01-summary}
+
+本章建立了三块基石：
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{事实} & \textbf{公式} & \textbf{作用}\\
+\midrule
+唯一分解 & $n=\prod p^{a_p}$ & 使乘积展开合法\\
+欧拉乘积 & $\zeta(s)=\prod_p(1-p^{-s})^{-1}$ & 把素数编码进解析函数\\
+对数发散 & $\sum 1/p=\infty$ & 第一个解析证明，也是 $L$ 函数的模板\\
+\bottomrule
+\end{tabular}
+\end{center}
+下一章进入 1859 年那篇论文：先给 $\zeta(s)$ 做\emph{解析延拓}，
+再把它整理成一个整函数 $\xi(s)$，让零点成为主角。
