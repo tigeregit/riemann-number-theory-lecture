@@ -1,0 +1,33 @@
+# --- LaTeX build artifacts ---
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.toc
+*.lot
+*.lof
+*.nav
+*.snm
+*.vrb
+*.synctex.gz
+*.synctex
+*.xdv
+*.run.xml
+_minted-*/
+tex/.minted*/
+
+# --- Lean build / local toolchains (not part of the repo) ---
+.tools/
+.lake/
+lean/.lake/
+*.olean
+*.ilean
+
+# --- OS / editor ---
+.DS_Store
+*.swp
+*~
