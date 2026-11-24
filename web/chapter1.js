@@ -265,7 +265,7 @@
   redrawers.push(labD); labD();
 
   /* ---------- Lean tabs ---------- */
-  var keys = ['ch1', 'euclid', 'eulerproduct'];
+  var keys = ['ch1', 'euclid', 'eulerproduct', 'bz'];
   var tabsWrap = $('#ch1-tabs');
   if (tabsWrap) {
     var tabs = $$('.ch1-tablist button', tabsWrap), panels = $$('.ch1-tabpanels > [role="tabpanel"]', tabsWrap);

@@ -40,7 +40,7 @@
     ├── chapter1.js         第一章的 KaTeX、实验、Lean 标签页与步骤器
     ├── styles.css          总讲义：响应式布局、明暗主题、动画、无障碍控件
     ├── app.js              总讲义：实验、绘图、测验、标签页与证明步骤器
-    ├── data.js             由 scripts/gen_web_data.py 生成：绘图数据 + 8 个真实 Lean 源码
+    ├── data.js             由 scripts/gen_web_data.py 生成：绘图数据 + 9 个真实 Lean 源码
     ├── assets/             由 scripts/gen_web_assets.py 生成的透明 PNG 图
     ├── vendor/             KaTeX 0.16.11（js / css / auto-render / fonts）
     └── README.md
@@ -59,4 +59,4 @@
 - 原生 input[type=range]、details、dialog、focusgroup 标签页（附带键盘回退）。
 - 所有持续动画都可由右上角按钮暂停，并遵守 prefers-reduced-motion。
 - 排版：文字居中；标题用 `text-wrap: balance`、正文用 `text-wrap: pretty` 修复意外分行；`clamp()` 流式字号、容器查询、`pointer: coarse` 触摸目标、安全区适配、响应式表格容器内滚动。
-- 已用无头 Chrome + CDP 在 1440 / 820 / 390 / 320 CSS px 四种视口验证：总讲义 577 处公式、独立第一章 531 处公式，控制台 0 错误、0 个公式解析错误、无真实横向滚动。
+- 已用无头 Chrome + CDP 在 1440 / 820 / 390 / 320 CSS px 四种视口验证：总讲义 577 处公式、独立第一章 659 处公式，控制台 0 错误、0 个公式解析错误、无真实横向滚动。

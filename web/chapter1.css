@@ -285,6 +285,12 @@ input[type="range"]:focus-visible { outline: 3px solid var(--accent); outline-of
 .ch1-step-buttons span { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .line-active { display: block; border-radius: 4px; background: color-mix(in srgb, var(--accent) 20%, transparent); }
 
+
+.ch1-code { max-inline-size: 62rem; margin: 1rem auto; padding: .8rem 1rem;
+  background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+  overflow-x: auto; text-align: start; }
+.ch1-code pre { margin: 0; font-size: .78rem; line-height: 1.65; }
+
 /* ---------- dialog ---------- */
 dialog { border: 1px solid var(--border); border-radius: 16px; padding: 1.3rem;
   background: var(--surface); color: var(--text); max-inline-size: min(420px, 92vw); }

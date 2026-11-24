@@ -33,6 +33,7 @@ the workspace root; the InfoView shows the goal state after each tactic.
 | `Riemann/PrimeCounting.lean` | §7.7 | `π`, monotonicity, and mathlib's prime number theorem |
 | `Riemann/ZetaStatements.lean` | §8 | `riemannZeta`, functional equation, `RiemannHypothesis` |
 | `Riemann/Chapter1.lean` | chapter1.html | Chapter 1 formalised: prime factor lemma, Euclid, geometric sum, one-prime Euler factor, divergence of sum 1/p, Bertrand, general Euler product reference, ZetaEulerProduct statement |
+| `Riemann/Bezout.lean` | chapter1.html §1.1 / §1.8 | Lemma 1.1 (Bezout identity): one-line proof via Nat.gcd_eq_gcd_ab, plus a full from-scratch transcription using Nat.find (well-ordering), Nat.div_add_mod and Nat.dvd_antisymm |
 | `Riemann/Exercises.lean` | §9 | holes (`sorry`) for the reader |
 
 `Riemann/Exercises.lean` deliberately contains `sorry`: `lake build` succeeds

@@ -398,6 +398,7 @@
     <table class="ch1-table"><thead><tr><th>数学命题</th><th>Lean 声明</th><th>状态</th></tr></thead><tbody>
       <tr><td>引理 A：每个 $n\ge2$ 有素因子</td><td><code>exists_prime_factor</code></td><td>本文件证明</td></tr>
       <tr><td>$\gcd(a,b)=1$（互素）</td><td><code>Nat.Coprime a b</code>，即 <code>Nat.gcd a b = 1</code></td><td>mathlib 定义</td></tr>
+      <tr><td><strong>引理 1.1（Bézout）</strong></td><td><code>bezout_mathlib</code>（引用）/ <code>bezout_from_wellOrdering</code>（从零复刻）</td><td>本文件证明</td></tr>
       <tr><td>Euclid：$\forall n\ \exists p\ge n$</td><td><code>euclid</code> / <code>Nat.exists_infinite_primes</code></td><td>逐战术证明</td></tr>
       <tr><td>有限几何和</td><td><code>geom_sum_mul</code></td><td>归纳 + ring</td></tr>
       <tr><td>单素数欧拉因子 $= \sum_{d\mid p^K}1/d$</td><td><code>euler_factor_single_prime</code></td><td>一般形式，已证</td></tr>
@@ -410,17 +411,41 @@
     </tbody></table>
   </div>
 
+  <h3 class="ch1-subhead">引理 1.1 的 Lean 证明：把网页那段逐句翻译</h3>
+  <div class="ch1-prose">
+    <p>网页 §1.1 的证明是四步：造集合 $S$ → 良序原理取最小元 $d$ → 带余除法证 $d\mid a,\ d\mid b$ → 证 $d$ 是最大公因子。Lean 里每一步都有对应物：</p>
+  </div>
+  <div class="ch1-table-wrapper" tabindex="0" role="region" aria-label="Bezout 证明步骤与 Lean 对照表">
+    <table class="ch1-table"><thead><tr><th>数学（网页 §1.1）</th><th>Lean</th><th>说明</th></tr></thead><tbody>
+      <tr><td>$S=\{au+bv&gt;0\}$ 非空</td><td><code>bezoutSet a b</code> 与 <code>hS : S.Nonempty</code></td><td>取 $u=v=1$ 得 $a+b&gt;0$；<code>omega</code> 证正性</td></tr>
+      <tr><td>良序原理取最小元 $d$</td><td><code>let d := Nat.find hS</code>；<code>Nat.find_spec</code>、<code>Nat.find_min'</code></td><td><code>Nat.find</code> 就是良序原理本身</td></tr>
+      <tr><td>带余除法 $a=qd+r\Rightarrow r=0$</td><td><code>Nat.div_add_mod c d</code>、<code>Nat.dvd_iff_mod_eq_zero</code></td><td>余数也是线性组合；若 $r&gt;0$ 就比 $d$ 更小，与最小性矛盾</td></tr>
+      <tr><td>$d$ 是最大公因子 ⇒ $d=\gcd(a,b)$</td><td><code>Nat.dvd_gcd</code>、<code>Int.natCast_dvd_natCast</code>、<code>Nat.dvd_antisymm</code></td><td>互相整除即相等</td></tr>
+    </tbody></table>
+  </div>
+  <div class="ch1-note">
+    <p><strong>版本 A（一行，最实用）.</strong> mathlib 已经把这段证明做完了：<code>Nat.gcdA a b</code> 与 <code>Nat.gcdB a b</code> 就是网页里的 $x_0,y_0$，定理 <code>Nat.gcd_eq_gcd_ab</code> 直接给出 $\gcd(a,b)=a\cdot\mathrm{gcdA}+b\cdot\mathrm{gcdB}$。于是引理 1.1 写成：</p>
+    <div class="ch1-code"><pre><code>theorem bezout_mathlib (a b : ℕ) :
+    ∃ x y : ℤ, (a : ℤ) * x + (b : ℤ) * y = (Nat.gcd a b : ℤ) := by
+  refine ⟨Nat.gcdA a b, Nat.gcdB a b, ?_⟩
+  exact (Nat.gcd_eq_gcd_ab a b).symm</code></pre></div>
+    <p><strong>版本 B（从零复刻，见下面的 Bezout.lean 标签页）.</strong> 用 <code>Nat.find</code> 实现良序原理、<code>Nat.div_add_mod</code> 实现带余除法、<code>Nat.dvd_gcd</code> 与 <code>Nat.dvd_antisymm</code> 完成「最大公因子」那一步。约 60 行，无 <code>sorry</code>，已通过内核检查。</p>
+    <p><strong>几个要适应的小地方（都不超纲）.</strong> ① 自然数 <code>ℕ</code> 与整数 <code>ℤ</code> 是不同类型，Bézout 系数可能为负，所以要用 <code>(a : ℤ)</code> 显式转换，<code>exact_mod_cast</code> 帮我们完成转换；② <code>classical</code> 打开经典逻辑，才能让「存在整数系数」这种命题可判定，从而使用 <code>Nat.find</code>；③ <code>omega</code>、<code>ring</code>、<code>linarith</code> 分别管整数不等式、代数恒等式、线性等式，就像你手算代数一样。</p>
+  </div>
+
   <h3 class="ch1-subhead">源码（切换标签）</h3>
   <div class="ch1-tabs" id="ch1-tabs">
     <div class="ch1-tablist" focusgroup="tablist nomemory" aria-label="Lean 源码文件">
       <button type="button" id="ch1-tab-c1" aria-selected="true" focusgroupstart>Chapter1.lean</button>
       <button type="button" id="ch1-tab-eu" aria-selected="false">Euclid.lean</button>
       <button type="button" id="ch1-tab-ep" aria-selected="false">EulerProduct.lean</button>
+      <button type="button" id="ch1-tab-bz" aria-selected="false">Bezout.lean</button>
     </div>
     <div class="ch1-tabpanels">
       <div role="tabpanel" aria-labelledby="ch1-tab-c1" tabindex="0"><div class="ch1-panel-inner"><pre><code></code></pre></div></div>
       <div role="tabpanel" aria-labelledby="ch1-tab-eu" hidden="until-found"><div class="ch1-panel-inner"><pre><code></code></pre></div></div>
       <div role="tabpanel" aria-labelledby="ch1-tab-ep" hidden="until-found"><div class="ch1-panel-inner"><pre><code></code></pre></div></div>
+      <div role="tabpanel" aria-labelledby="ch1-tab-bz" hidden="until-found"><div class="ch1-panel-inner"><pre><code></code></pre></div></div>
     </div>
   </div>
 

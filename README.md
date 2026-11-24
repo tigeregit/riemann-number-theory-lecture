@@ -8,7 +8,7 @@
 - 第二编（第 6–8 章）：Lean 4 形式化证明教程，从「命题即类型」到「如何把百万美元问题写成一行 def」。
 - 附录 A：复分析工具箱；附录 B：习题、提示与部分解答。
 - **交互式网页讲义**（web/index.html）：动画、图片、7 组滑块实验、素数无穷多的七个完整证明、Lean 源码标签页、证明步骤器与 6 道自测题，双击即可离线打开。
-- **第一章独立详解版**（web/chapter1.html）：把第一章所有中间步骤与证明补齐（Bézout、算术基本定理、欧拉乘积尾项估计、Chebyshev、Bertrand、Dirichlet），并给出 `lean/Riemann/Chapter1.lean` 的可编译形式化；文字居中、电脑/iPad/手机适配。
+- **第一章独立详解版**（web/chapter1.html）：把第一章所有中间步骤与证明补齐（Bézout、算术基本定理、欧拉乘积尾项估计、Chebyshev、Bertrand、Dirichlet），并给出 `lean/Riemann/Chapter1.lean` 与 `lean/Riemann/Bezout.lean`（引理 1.1 的逐个战术证明）的可编译形式化；文字居中、电脑/iPad/手机适配。
 
 版本固定：**Lean 4.36.0 / mathlib v4.36.0**（见 lean/lean-toolchain、lean/lakefile.toml）。
 讲义中所有库名都按该版本逐条核对过。
@@ -31,13 +31,13 @@
     │   ├── lean-toolchain
     │   ├── Riemann.lean          根模块
     │   ├── Main.lean             可执行 demo
-    │   └── Riemann/              7 个示例模块（见 lean/README.md）
+    │   └── Riemann/              9 个示例模块（含 Chapter1.lean、Bezout.lean，见 lean/README.md）
     ├── web/                   交互式网页讲义（见 web/README.md）
     │   ├── index.html           总讲义入口，双击即可打开
     │   ├── chapter1.html        第一章独立详解版（完整证明 + Lean）
     │   ├── styles.css / app.js  总讲义：布局、主题、动画与交互实验
     │   ├── chapter1.css/js      第一章：居中排版、三端适配与交互
-    │   ├── data.js              绘图数据 + 8 个真实 Lean 源码（生成）
+    │   ├── data.js              绘图数据 + 9 个真实 Lean 源码（生成）
     │   ├── assets/              透明背景 PNG 曲线图（生成）
     │   └── vendor/              本地打包的 KaTeX 0.16.11
     └── scripts/
