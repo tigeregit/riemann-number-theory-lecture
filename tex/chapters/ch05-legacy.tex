@@ -1,0 +1,176 @@
+\chapter{黎曼的其他工作与遗产}
+\label{chap:legacy}
+
+\begin{keybox}[本章要点]
+黎曼只写过一篇数论论文，但那篇论文所用的语言——复变函数、Riemann 面、
+theta 函数、解析延拓、模数——几乎全部来自他自己在 1851--1857 年的工作。
+本章把这条"前后呼应"的线索补全，并介绍遗稿中的 Riemann--Siegel 公式。
+\end{keybox}
+
+\section{小传}
+\label{sec:05-life}
+
+Bernhard Riemann（1826--1866）生于汉诺威王国 Breselenz 的一个牧师家庭，
+1846 年入哥廷根大学，先学神学与语文学，后转数学，师从高斯；
+1847--1849 年在柏林听了狄利克雷、雅可比、施泰纳的课。
+1851 年博士论文，1854 年通过讲师资格论文（就是那篇论几何基础的著名演说），
+1859 年狄利克雷去世后接任哥廷根教授。1862 年患结核，1866 年在意大利
+Selasca 去世，年仅 39 岁。他发表的文章不多，但几乎每篇都开创一个领域。
+
+\section{1851：复变函数与 Riemann 面}
+\label{sec:05-1851}
+
+博士论文 \emph{Grundlagen f\"ur eine allgemeine Theorie der Functionen einer
+ver\"anderlichen complexen Gr\"osse}（《单复变函数一般理论基础》）引入了：
+
+\begin{itemize}
+  \item 用 Cauchy--Riemann 方程（而非仅仅形式运算）定义解析函数；
+  \item \emph{Riemann 面}：把多值函数（如 $\sqrt z$、$\log z$）变成
+        某个曲面上的单值函数；
+  \item Riemann 映射定理、单连通性、Riemann 球面的思想。
+\end{itemize}
+
+\emph{这与 1859 年论文的关系}：所谓"解析延拓"，只有在 Riemann 面的语言里
+才说得清楚；柯西的留数定理、围道积分，也是这篇论文打下的地基。
+黎曼数论论文里那个"把 $\zeta(s)$ 延拓到全平面"的动作，
+用的是他八年前自己造的工具。
+
+\section{1854：几何基础演说（背景）}
+\label{sec:05-1854}
+
+就职演讲 \emph{\"Uber die Hypothesen, welche der Geometrie zu Grunde liegen}
+提出 $n$ 维流形与度量 $ds^2=\sum g_{ij}\dd x_i\dd x_j$，即后来的黎曼几何。
+它本身不属于数论，但值得记住：\emph{同一个头脑，既奠定了广义相对论的几何，
+也奠定了解析数论}。高斯当时在场，据说极为赞赏。
+
+\section{1857：Abel 函数、Riemann 面与 theta 函数}
+\label{sec:05-theta}
+
+论文 \emph{Theorie der Abel'schen Functionen} 是 19 世纪最深刻的数学文献之一：
+
+\begin{itemize}
+  \item 给 Riemann 面定义\emph{亏格} $g$、\emph{模数}（后来知道是 $3g-3$ 个参数）、
+        双有理等价（birational equivalence）——现代代数几何的基本概念；
+  \item 把 Abel 积分分为第一、二、三类，解决 Jacobi 反演问题；
+  \item 引入 \emph{Riemann theta 函数}
+        \begin{equation}\label{eq:05-theta}
+          \Theta(z,F)=\sum_{n\in\Z^{g}}
+          \exp\!\left(2\pi\iu\left(\tfrac12 n^{\mathsf T}F n+n^{\mathsf T}z\right)\right),
+        \end{equation}
+        其中 $z\in\C^g$，$F$ 为对称 $g\times g$ 复矩阵且 $\Imm F$ 正定。
+\end{itemize}
+
+\begin{histbox}[theta 函数与数论的"回环"]
+$g=1$ 的 theta 函数就是 \cref{eq:02-theta} 的 Jacobi theta，
+它的变换公式 $\theta(t)=t^{-1/2}\theta(1/t)$ 正是第二章证明 $\zeta$ 函数方程的关键。
+更一般地，theta 函数是\emph{模形式}的祖先；Hecke 在 1930 年代证明：
+一大类 $L$ 函数的函数方程，本质上都来自相应 theta 级数的 Poisson 求和变换。
+黎曼 1857 年造的工具，1900 年代之后成了整个自守形式与 Langlands 纲领的入口。
+\end{histbox}
+
+\section{1857：超几何函数与 Riemann P 函数}
+\label{sec:05-P}
+
+另一篇 1857 年论文研究高斯超几何级数 $F(\alpha,\beta,\gamma;x)$，
+引入 \emph{Riemann P 函数}与\emph{单值群}（monodromy）：
+通过解析延拓绕奇点一圈，解按一个矩阵变换。这引出后来的
+Riemann--Hilbert 问题（希尔伯特第 21 问题）与微分方程的 Galois 理论。
+对讲义的主线，它的意义是：黎曼对"一个函数由它的奇点与延拓行为决定"
+这件事有极深的直觉——$\zeta$ 由它的极点与零点决定，正是同一哲学。
+
+\section{1859 与 1860：两篇"顺手"的论文}
+\label{sec:05-1859-1860}
+
+1859 年的数论论文（第二、三章）是黎曼\emph{唯一}发表的数论作品。
+同年稍后他还写了关于有限振幅平面空气波传播的论文（激波、Riemann 问题），
+成为双曲型守恒律数值格式的起点。一个纯数学家同时写下 PDE 里最常用的
+"Riemann 问题"，也提醒我们不要把他想象成只活在抽象世界里的人。
+
+\section{Riemann--Roch 与算术几何}
+\label{sec:05-RR}
+
+1857 年黎曼给出一个不等式，1865 年他的学生 Roch 补全为
+\emph{Riemann--Roch 定理}：对亏格 $g$ 的曲面上的除子 $D$，
+\begin{equation}\label{eq:05-RR}
+  \ell(D)-\ell(K-D)=\deg D+1-g .
+\end{equation}
+它把"给定极点条件下亚纯函数空间的维数"这个分析问题，
+变成一个拓扑/代数不变量的计算。20 世纪经 Weil、Grothendieck 等人发展，
+成为代数几何与算术几何的核心工具；而 Weil 猜想（有限域上的 RH 类比）
+正是沿这条线提出的，最终由 Deligne 证明\cite{deligne1974}。
+
+\section{遗稿与 Riemann--Siegel 公式}
+\label{sec:05-nachlass}
+
+黎曼去世后，他的手稿（\emph{Nachlass}）保存在哥廷根。
+1926 年 Bessel-Hagen 在其中发现关于 $\xi$ 的积分表示；
+1932 年 C.\ L.\ Siegel 系统整理了遗稿中解析数论部分，发表
+\emph{\"Uber Riemanns Nachlass zur analytischen Zahlentheorie}\cite{siegel1932}。
+
+Siegel 发现：黎曼并非"随手猜了一下"，他其实做了大量\emph{数值计算}，
+并掌握了一个计算 $\zeta(1/2+\iu t)$ 的高效渐近展开。今天写成
+\begin{equation}\label{eq:05-Z}
+  Z(t)=\ee^{\iu\vartheta(t)}\zeta\!\left(\tfrac12+\iu t\right)\in\R,
+  \qquad
+  \vartheta(t)=\Imm\log\Gamma\!\left(\tfrac14+\tfrac{\iu t}{2}\right)
+  -\frac{t}{2}\log\pi ,
+\end{equation}
+\begin{equation}\label{eq:05-RS}
+  Z(t)=2\sum_{n=1}^{N}\frac{\cos\!\bigl(\vartheta(t)-t\log n\bigr)}{\sqrt{n}}
+  +R(t),\qquad N=\left\lfloor\sqrt{\frac{t}{2\pi}}\right\rfloor,
+\end{equation}
+其中余项 $R(t)$ 有 $t^{-1/2}$ 幂次的渐近展开（Riemann--Siegel 公式）。
+因为 $Z(t)$ 是实值函数，只要找到它变号就能严格确认一个零点在临界线上——
+这正是 Turing 方法、Lehmer、Odlyzko 及当代大规模验证的算法基础。
+
+\begin{histbox}[一个常被误解的故事]
+"黎曼随手猜了一下"是流行的通俗说法。Siegel 1932 年的研究表明，
+黎曼对零点做过实际计算，并拥有远比论文里写出的更多的技术。
+论文短，是因为他把它当作一份\emph{公告}（给魏尔斯特拉斯的信中说过
+打算再写完整版），而不是因为他没想清楚。
+\end{histbox}
+
+\section{遗产总表}
+\label{sec:05-table}
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.26\textwidth}p{0.68\textwidth}@{}}
+\toprule
+\textbf{黎曼的工具} & \textbf{后来长成}\\
+\midrule
+解析延拓、Riemann 面 & 复几何、代数几何、多复变\\
+函数方程与 $\xi$ 函数 & Hecke 的 $L$ 函数理论、自守形式、Langlands 纲领\\
+theta 函数 / 模数 & 模形式、Teichm\"uller 理论、弦论中的配分函数\\
+"零点决定计数" & 显式公式、素数定理、随机矩阵与量子混沌\\
+Riemann--Roch & 层上同调、指标定理、Weil 猜想\\
+黎曼几何 & 广义相对论、规范场论\\
+\textbf{形式化验证} & \textbf{本讲义第二编：用 Lean 把上述命题机器检验}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{阅读建议}
+\label{sec:05-reading}
+
+\begin{description}[leftmargin=2.2em]
+  \item[原始文献] 黎曼 1859 年论文的德文影印与 David R.\ Wilkins 英译
+        可在克雷数学所网站免费获取\cite{claymanuscript}；只有六页，值得亲自读一遍。
+  \item[最佳注释本] H.\ M.\ Edwards, \emph{Riemann's Zeta Function}\cite{edwards2001}：
+        按 1859 年论文的顺序逐段讲解，历史与数学并重，最适合作为本讲义的下一站。
+  \item[标准参考] Titchmarsh（Heath-Brown 修订）\cite{titchmarsh1986}、
+        Ingham\cite{ingham1932}、Iwaniec--Kowalski\cite{iwaniec2004}。
+  \item[入门教材] Apostol\cite{apostol1976}、Davenport\cite{davenport2000}。
+  \item[通俗读物] Derbyshire \emph{Prime Obsession}\cite{derbyshire2003}、
+        du Sautoy \emph{The Music of the Primes}。
+  \item[Lean] Avigad--Macbeth \emph{Mathematics in Lean}\cite{mil2023}、
+        \emph{Theorem Proving in Lean 4}\cite{lean4ref}、mathlib 文档\cite{mathlib4}。
+\end{description}
+
+\section{小结}
+\label{sec:05-summary}
+
+黎曼 1859 年那六页之所以可能，是因为他此前十年已经造好了整套语言：
+复变函数、Riemann 面、theta 函数、函数由奇点决定。
+而那六页之后，解析数论、模形式、代数几何、数学物理各自长成了大树。
+第一编到此结束；第二编换一个完全不同的视角：
+\emph{如果我们要求每一步都经机器检查，这些数学该怎么写？}

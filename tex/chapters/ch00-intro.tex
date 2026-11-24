@@ -1,0 +1,173 @@
+\chapter{导论：这份讲义的地图}
+\label{chap:intro}
+
+\begin{keybox}[一句话概括]
+1859 年，黎曼把欧拉的级数 $\zeta(s)=\sum n^{-s}$ 从实变量 $s>1$ 延拓到整个复平面，
+并发现：\emph{素数的分布完全由 $\zeta(s)$ 的零点决定}。
+这篇仅约六页的论文创立了解析数论，也留下了至今未解的黎曼猜想。
+\end{keybox}
+
+\section{这份讲义想让你带走什么}
+\label{sec:00-goal}
+
+这不是一本数论教材，而是一份\emph{讲义}：它只讲一条主线——黎曼怎样把"数素数"
+这个离散的算术问题，变成一个关于复变函数零点的问题。读完以后，希望你能够：
+
+\begin{enumerate}[label=\arabic*.]
+  \item 独立写出欧拉乘积公式，并说明为什么它把素数与一个级数的解析性质绑在一起；
+  \item 复述黎曼 1859 年论文的三步结构：解析延拓与函数方程、$\xi$ 函数的整函数化、
+        显式公式；
+  \item 看懂显式公式
+        \begin{equation}\label{eq:00-explicit}
+          J(x)\;=\;\Li(x)-\sum_{\rho}\Li(x^{\rho})-\log 2
+          +\int_x^{\infty}\frac{\dd t}{t(t^2-1)\log t},
+        \end{equation}
+        并能解释每一项从哪里来、为什么黎曼猜想控制误差项；
+  \item 知道素数定理为何依赖"$\zeta(s)$ 在 $\Ree s=1$ 上不为零"，以及黎曼猜想
+        在当代数学中的位置；
+  \item 在第二部分，能用 \texttt{Lean 4} 写出并机器检验若干个关于素数的命题，
+        并且能\emph{正确陈述}（而不是假装证明）$\zeta$ 函数、函数方程与黎曼猜想。
+\end{enumerate}
+
+\begin{histbox}[为什么要给理工科学生讲这个]
+对学信号与系统、控制、物理或计算机的同学，黎曼的思路其实非常熟悉：
+把一个序列（素数计数）看成信号，构造它的\emph{生成函数／变换}（$\zeta(s)$），
+在复频域里研究极点和零点，再反变换回时域。零点 $\rho$ 就是"频谱"，
+临界线 $\Ree s=1/2$ 对应"最平稳的相位"。这种"时域--频域"对偶，
+和拉普拉斯变换、Z 变换、傅里叶分析是同一套直觉。
+\end{histbox}
+
+\section{预备知识与记号}
+\label{sec:00-prereq}
+
+只需要工科本科前两年的数学：
+
+\begin{center}
+\begin{tabular}{p{0.30\textwidth}p{0.62\textwidth}}
+\toprule
+\textbf{需要} & \textbf{用到哪里}\\
+\midrule
+微积分、无穷级数、一致收敛 & 欧拉乘积、Mellin 变换、围道积分的合法性\\
+线性代数、矩阵 & 二次型、Riemann theta 函数（第五章，可跳过）\\
+复变函数初步（解析、留数、柯西定理） & 解析延拓、Perron 公式、函数方程\\
+一点积分变换的直觉 & 理解"频谱"比喻（非必需）\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+凡是超出以上范围、或证明较长的技术细节，都用 \textbf{$\star$} 标记，
+可以第一遍跳过而不影响主线。附录~\ref{app:analysis} 汇总了所需的复分析工具。
+
+\begin{center}\small
+\begin{tabular}{llp{0.58\textwidth}}
+\toprule
+\multicolumn{2}{l}{\textbf{记号}} & \textbf{含义}\\
+\midrule
+$\N,\Z,\Q,\R,\C$ & & 自然数、整数、有理数、实数、复数\\
+$s=\sigma+\iu t$ & & 复变量，$\sigma=\Ree s$，$t=\Imm s$\\
+$p$ & & 总是表示素数\\
+$\pit$ & & 不超过 $x$ 的素数个数\\
+$\Li(x)$ & & 对数积分，本文取 $\Li(x)=\int_2^x \dd t/\log t$\\
+$J(x)$ & & 黎曼的加权计数函数，见 \cref{sec:03-J}\\
+$\Lmb(n)$ & & von Mangoldt 函数：$n=p^k$ 时为 $\log p$，否则为 $0$\\
+$\mu(n)$ & & M\"obius 函数\\
+$f(x)\sim g(x)$ & & $\lim_{x\to\infty} f(x)/g(x)=1$\\
+$f=\bigO(g)$ & & 存在 $C$ 使 $|f|\le C|g|$ 充分大时成立\\
+$\Gamma(s)$ & & 欧拉 Gamma 函数\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{remark}[关于 $\Li(x)$ 的一个小坑]
+文献里 $\operatorname{li}(x)$ 常指从 $0$ 出发的主值积分 $\mathrm{PV}\!\int_0^x \dd t/\log t$，
+而 $\Li(x)$ 有时指 $\operatorname{li}(x)-\operatorname{li}(2)=\int_2^x \dd t/\log t$。
+两者相差常数 $\operatorname{li}(2)\approx 1.045$。本讲义统一采用后者；
+显式公式中的常数项 $-\log 2$ 与平凡零点项会相应配合。读其它书时请先确认约定。
+\end{remark}
+
+\section{全书的逻辑链}
+\label{sec:00-roadmap}
+
+\begin{center}
+\begin{tikzpicture}[
+  node distance=7mm and 8mm,
+  box/.style={draw,rounded corners=3pt,align=center,inner sep=4pt,
+              fill=blue!6,minimum width=24mm,font=\small},
+  arr/.style={-{Stealth[length=2.5mm]},thick,blue!45!black}
+]
+\node[box] (e) {欧拉乘积\\ $\zeta=\prod_p(1-p^{-s})^{-1}$};
+\node[box,right=of e] (z) {解析延拓\\ 与函数方程};
+\node[box,right=of z] (x) {$\xi(s)$ 整函数\\ 零点 $\rho$};
+\node[box,right=of x] (f) {显式公式\\ $J(x)$ 与 $\pi(x)$};
+\node[box,right=of f] (p) {素数定理\\ 与黎曼猜想};
+\draw[arr] (e)--(z); \draw[arr] (z)--(x); \draw[arr] (x)--(f); \draw[arr] (f)--(p);
+\node[below=2mm of e,font=\scriptsize,gray] {第一章};
+\node[below=2mm of z,font=\scriptsize,gray] {第二章};
+\node[below=2mm of x,font=\scriptsize,gray] {第二章};
+\node[below=2mm of f,font=\scriptsize,gray] {第三章};
+\node[below=2mm of p,font=\scriptsize,gray] {第四章};
+\end{tikzpicture}
+\end{center}
+
+一句话：\emph{素数的信息被编码进 $\zeta$ 的解析性质，零点就是解码的钥匙}。
+第五章讲黎曼其它（与数论相关的）工作与遗产，第二编把这套数学翻译成
+\texttt{Lean} 可以检查的形式语言。
+
+\section{历史时间表}
+\label{sec:00-timeline}
+
+\begin{center}\small
+\begin{tabular}{rp{0.78\textwidth}}
+\toprule
+\textbf{年份} & \textbf{事件}\\
+\midrule
+约前 300 & 欧几里得《几何原本》：素数无穷多\\
+1737 & 欧拉：乘积公式，$\sum 1/p$ 发散，解析方法进入数论\\
+1792/1798 & 高斯（15 岁）与勒让德猜测 $\pit\sim x/\log x$、$\Li(x)$\\
+1837 & 狄利克雷：特征与 $L$ 函数，证明等差数列中有无穷多素数\\
+1848/1850 & 切比雪夫：$\psi(x)\asymp x$，伯特兰定理，给出 $\pit$ 的正确数量级\\
+\textbf{1859} & \textbf{黎曼：《论小于给定值的素数的个数》，当选柏林科学院通讯院士时宣读}\\
+1893 & 阿达马：整函数乘积理论，补上黎曼乘积公式的严格证明\\
+1896 & 阿达马、德·拉·瓦莱·普桑独立证明素数定理\\
+1900 & 希尔伯特把黎曼猜想列为第 8 问题\\
+1901 & von Koch：$\mathrm{RH}\iff\pit=\Li(x)+\bigO(\sqrt{x}\log x)$\\
+1914 & 哈代：临界线上有无穷多零点；李特尔伍德：$\Li(x)-\pit$ 变号无穷多次\\
+1932 & 西格尔整理黎曼遗稿，发现 Riemann--Siegel 公式\\
+1949 & 埃尔德什、塞尔伯格给出素数定理的初等证明\\
+1973 & 蒙哥马利：零点对关联与随机矩阵 GUE 的联系\\
+1985 & Odlyzko--te Riele 否定 Mertens 猜想（它曾蕴含 RH）\\
+2000 & 克雷数学研究所把黎曼猜想列为千禧年大奖难题\\
+2021 & Platt--Trudgian 严格验证 $|\Imm\rho|\le 3\times 10^{12}$ 内零点均在临界线上\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{严谨性的分层}
+\label{sec:00-rigor}
+
+讲义对证明分三档处理，并在标题上标明：
+
+\begin{itemize}[leftmargin=2em]
+  \item[\textbf{完整证明}] 本科工具够用，且对主线不可省（如欧拉乘积、欧几里得定理、
+        $\sum 1/p$ 发散）。
+  \item[\textbf{结构证明}] 给出所有关键步骤与直观，但把一致收敛、围道估计等技术细节
+        留到附录或标 $\star$（如解析延拓、Perron 反演）。
+  \item[\textbf{陈述 + 解释}] 只说明定理说什么、为什么重要（如 Hadamard 乘积、
+        零点密度估计）。这类结论在参考文献中可以找到完整证明。
+\end{itemize}
+
+\begin{warnbox}[一个诚实的原则]
+数学讲义里最容易骗人的地方，是把"看起来显然"跳过。第二编的 \texttt{Lean}
+部分正是对这个毛病的一剂药：在那里，\emph{任何}跳过的步骤都必须显式写成
+\texttt{sorry}、\texttt{axiom} 或库定理，机器会提醒你欠了什么。
+\end{warnbox}
+
+\section{第二编（Lean）怎么读}
+\label{sec:00-lean}
+
+第二编是独立的教程，不要求先装好软件也能读：每个 \texttt{Lean} 代码块都
+来自仓库 \texttt{lean/Riemann/} 下的真实文件，并且已在
+\texttt{Lean 4.36.0 + mathlib v4.36.0} 下通过内核检查。
+建议顺序：先读 \cref{chap:lean-intro} 建立"命题即类型"的观念，
+再跟着 \cref{chap:lean-core} 手打一遍欧几里得定理的证明，
+最后看 \cref{chap:lean-riemann} 里"如何把百万美元问题写成一行 \texttt{def}"。

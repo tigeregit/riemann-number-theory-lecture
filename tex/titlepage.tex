@@ -1,0 +1,44 @@
+% 标题页
+\begin{titlepage}
+\centering
+\vspace*{2.2cm}
+{\Huge\bfseries 黎曼在数论方面的研究\par}
+\vspace{0.9cm}
+{\LARGE 从欧拉乘积到黎曼猜想\par}
+\vspace{0.5cm}
+{\Large —— 一份面向理工科本科生的讲义\par}
+\vspace{1.4cm}
+{\Large 附：\textbf{Lean 4} 形式化证明教程\par}
+\vspace{2.0cm}
+\begin{minipage}{0.78\textwidth}
+\centering
+\begin{tikzpicture}[scale=1.05]
+  \draw[->,thick] (-4.2,0) -- (4.3,0) node[right] {$\Ree s$};
+  \draw[->,thick] (0,-2.4) -- (0,2.5) node[above] {$\Imm s$};
+  % critical strip
+  \fill[blue!9] (0,-2.1) rectangle (2.2,2.1);
+  \draw[blue!45!black,thick] (0,-2.1) -- (0,2.1);
+  \draw[blue!45!black,thick] (2.2,-2.1) -- (2.2,2.1);
+  % critical line and its zeros
+  \draw[red!70!black,ultra thick] (1.1,-2.1) -- (1.1,2.1);
+  \foreach \y in {-1.7,-1.1,-0.5,0.5,1.1,1.7} {\fill[red!70!black] (1.1,\y) circle (2.1pt);}
+  % trivial zeros (negative even integers only)
+  \foreach \x in {-4,-2} {\fill[gray!60] (\x,0) circle (2pt);}
+  % pole at s = 1
+  \fill[orange!85!black] (2.2,0) circle (2.6pt);
+  % labels
+  \node[below,font=\scriptsize] at (2.2,-0.13) {$1$};
+  \node[below,font=\scriptsize] at (1.1,-0.13) {$\tfrac12$};
+  \node[red!70!black,right,font=\scriptsize] at (1.2,1.62) {$\Ree s=\tfrac12$};
+  \node[blue!55!black,right,align=left,font=\scriptsize] at (2.42,1.25)
+        {临界带\\ $0<\Ree s<1$};
+  \node[gray!55!black,left,font=\scriptsize] at (-4.15,0.22) {平凡零点 $-2,-4,\dots$};
+  \node[orange!85!black,above,font=\scriptsize] at (2.2,0.18) {极点};
+\end{tikzpicture}
+\end{minipage}
+\vfill
+{\large 版本 1.0\quad ·\quad 2026 年\par}
+\vspace{0.3cm}
+{\small 配套代码仓库见 \texttt{README.md}；使用 \texttt{make pdf} 与 \texttt{make lean} 构建。\par}
+\end{titlepage}
+\thispagestyle{empty}

@@ -1,0 +1,74 @@
+\chapter{习题、提示与部分解答}
+\label{app:exercises}
+
+\section{第一编习题}
+\begin{exercise}[见 \cref{sec:01-infinite}]
+证明 $\sum_{p\le N}1/p\ge\log\log N-\bigO(1)$。
+\par\textbf{提示}：由欧拉乘积
+$\prod_{p\le N}(1-1/p)^{-1}\ge\sum_{n\le N}1/n=H_N\sim\log N$。
+取对数并用 $-\log(1-x)\le x+2x^2$（$0\le x\le1/2$），
+右端二次项 $\sum_p 2/p^2$ 收敛，可并入常数。
+\end{exercise}
+
+\begin{exercise}[见 \cref{sec:02-continuation}]
+补全 \cref{eq:02-key} 中换元 $u=1/t$ 的指数计算，验证
+$\int_0^1 t^{s/2-1}t^{-1/2}\psi(1/t)\dd t
+=\int_1^\infty u^{\frac{1-s}{2}-1}\psi(u)\dd u$。
+\par\textbf{提示}：$t^{s/2-3/2}=u^{(3-s)/2}$，$\dd t=-\dd u/u^2$，
+合起来是 $u^{(-1-s)/2}=u^{\frac{1-s}{2}-1}$。
+\end{exercise}
+
+\begin{exercise}[见 \cref{sec:03-moebius}]
+验证 \texttt{Dirichlet 卷积}视角：令 $a_n=1/n$、$b_n=\mu(n)/n$，
+计算 $(a*b)_n=\sum_{d\mid n}a_d b_{n/d}$，说明它等于 $\varepsilon_n=[n=1]/n$。
+\par\textbf{解答}：$(a*b)_n=\sum_{d\mid n}\frac1d\frac{\mu(n/d)}{n/d}
+=\frac1n\sum_{d\mid n}\mu(n/d)=\frac1n[n=1]$。
+\end{exercise}
+
+\begin{exercise}[见 \cref{sec:04-pnt}]
+验证三角恒等式 $3+4\cos\theta+\cos2\theta=2(1+\cos\theta)^2\ge0$，
+并说明它在 \cref{thm:04-nonvanishing} 里为什么不可或缺。
+\par\textbf{提示}：$\cos2\theta=2\cos^2\theta-1$，展开即得。
+若该式可能为负，\texttt{log zeta} 的实部不等式 \cref{eq:04-ineq} 就不成立。
+\end{exercise}
+
+\begin{exercise}[思考题]
+若 RH 不成立（存在 $\Ree\rho=\beta>1/2$ 的零点），
+\cref{eq:03-explicit} 中对应项的振幅是 $x^\beta$。解释为什么这会
+使 $\pit-\Li(x)$ 出现比 $\sqrt{x}$ 更大的波动，并说明这与
+"素数分布不规则"的直觉一致。
+\end{exercise}
+
+\section{第二编（Lean）习题提示}
+对应 \texttt{lean/Riemann/Exercises.lean} 的六个 \texttt{sorry}。
+
+\begin{description}[leftmargin=2.2em]
+\item[\textbf{第 1 题}] $\pi(n)\le n$。
+  直接抄 \texttt{PrimeCounting.primeCounting\_le} 的思路：
+  \texttt{rw [← Nat.primesLE\_card\_eq\_primeCounting]}，
+  再用 \texttt{Finset.card\_le\_card} 把 \texttt{primesLE n} 嵌入 \texttt{Icc 2 n}。
+\item[\textbf{第 2 题}] $\sum_{d\mid 12}\mu(d)=0$。
+  \texttt{native\_decide} 一行即可；也可由
+  \texttt{moebius\_mul\_coe\_zeta} 在 $n=12$ 处取值。
+\item[\textbf{第 3 题}] 几何和等式搬到 $\C$。
+  \texttt{EulerProduct.geom\_sum\_mul} 的证明逐字可用：
+  \texttt{induction n} + \texttt{Finset.sum\_range\_succ} + \texttt{ring}，
+  其中 \texttt{ring} 在 $\C$ 上同样有效。
+\item[\textbf{第 4 题}] 陈述欧拉乘积。
+  已给出 \texttt{EulerProductHolds : Prop}；
+  本题只要求类型正确，不要求证明。想想为什么 \texttt{∏'} 而不是 \texttt{∏}。
+\item[\textbf{第 5 题}] 陈述 RH 蕴含的误差项。
+  \texttt{SharpPNT} 已给出；注意用 \texttt{π ⌊x⌋₊} 把实数 $x$ 转成自然数索引，
+  以及 \texttt{Real.sqrt x * Real.log x} 对应 $\sqrt{x}\log x$。
+\item[\textbf{第 6 题}] \texttt{example : Prop := RiemannHypothesis}。
+  这是一个"类型正确"的练习：\texttt{RiemannHypothesis} 的类型就是 \texttt{Prop}。
+  它\emph{不是}一个证明。
+\end{description}
+
+\section{关于 \texttt{lake build} 的输出}
+正常构建会打印若干 \texttt{warning: ... consider adding 'module' ...}：
+这是 mathlib v4.36 模块系统的\emph{建议}，不是错误；本教程为了可读性
+统一使用 \texttt{import Mathlib}。真正需要警惕的只有两类信息：
+\texttt{error:} 开头的编译错误，以及
+\texttt{declaration uses 'sorry'}（练习文件中的欠条）。
+构建成功的最后一行是 \texttt{Build completed successfully}。

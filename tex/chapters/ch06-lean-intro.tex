@@ -1,0 +1,210 @@
+\chapter{为什么形式化，以及怎样开始}
+\label{chap:lean-intro}
+
+\begin{keybox}[本章要点]
+形式化证明不是"把证明敲进电脑"，而是把数学命题与证明都写成\emph{类型}，
+交给一个极小的可信内核逐条检查。本章讲清楚信任模型、装好环境、
+认识 \texttt{Lean 4} 的基本语法与常用战术，并给出第一个能编译的文件。
+\end{keybox}
+
+\section{形式化到底在做什么}
+\label{sec:06-why}
+
+先看一个对比。传统讲义里写"显然 $p\mid n!$"，读者自己补上理由；
+在 \texttt{Lean} 里，这句话必须变成一个\emph{证明项}，由内核检查：
+\begin{center}
+\begin{tabular}{@{}p{0.44\textwidth}p{0.50\textwidth}@{}}
+\toprule
+\textbf{纸面数学} & \textbf{形式化数学}\\
+\midrule
+命题用自然语言书写 & 命题是类型 \texttt{Prop}\\
+"显然""同理可证" & 必须给出 \texttt{by ...} 的证明项\\
+引用文献 & 引用库定理（有确定的名字与类型）\\
+人来判断对错 & 内核（约几千行代码）判断\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+这不是吹毛求疵。历史上：四色定理的证明、开普勒猜想（\textsc{Flyspeck}
+项目，2003--2014）、以及 2020 年代 Scholze 的 Liquid Tensor Experiment，
+都因形式化而消除了对"巨大证明是否真的被检查过"的疑虑。
+mathlib 目前包含数十万条定理，并且每天都在增长——它已经是一个可用的
+"数学图书馆"，而不只是实验品\cite{mathlib4,mil2023}。
+
+对这份讲义，形式化还有一层特别的意义：第一编里我们多次说
+"这一步需要一致收敛""这个乘积由 Hadamard 补证"。在 \texttt{Lean} 里，
+\emph{凡是欠着的步骤都必须显式写出来}，机器不会替你"显然"。
+
+\section{命题即类型（Curry--Howard）}
+\label{sec:06-curryhoward}
+
+\texttt{Lean} 的核心观念只有一句：
+\begin{center}\emph{一个命题是一个类型；它的证明是这个类型的一个项。}\end{center}
+
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{逻辑} & \textbf{Lean 里的类型}\\
+\midrule
+$P$ 成立 & \texttt{p : P}（有一个类型为 \texttt{P} 的项）\\
+$P\land Q$ & \texttt{And P Q}，项是 \texttt{⟨hP, hQ⟩}\\
+$P\lor Q$ & \texttt{Or P Q}，项是 \texttt{Or.inl hP} 或 \texttt{Or.inr hQ}\\
+$P\to Q$ & \texttt{P → Q}，项是函数\\
+$\forall x,\ P(x)$ & \texttt{∀ x, P x}，项是依赖函数\\
+$\exists x,\ P(x)$ & \texttt{∃ x, P x}，项是 \texttt{⟨x, h⟩}\\
+$\neg P$ & \texttt{P → False}\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+所以 \texttt{theorem} 声明的是"我要构造一个某类型的项"，
+\texttt{by ...} 是构造这个项的\emph{战术脚本}。
+内核只做一件事：检查最终得到的项类型是否正确。战术写得多花哨都不重要，
+重要的是结果项。
+
+\section{信任清单：机器到底信了谁}
+\label{sec:06-trust}
+
+形式化不是"绝对真理"，而是把信任压缩到一个尽可能小的地方：
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.25\textwidth}p{0.69\textwidth}@{}}
+\toprule
+\textbf{机制} & \textbf{信任含义}\\
+\midrule
+\texttt{by} 战术生成的证明项 & 内核检查，\emph{不需信任}战术本身\\
+\texttt{theorem / lemma} & 证明项被内核接受\\
+\texttt{axiom} & 直接宣称一个命题有证明项：\emph{新增假设}\\
+\texttt{sorry} & 留一个洞，Lean 接受但发出警告：\emph{未证明}\\
+\texttt{opaque} & 只暴露类型、隐藏定义（用于抽象）\\
+\texttt{unsafe} / \texttt{implemented\_by} & 执行效率技巧，需额外信任\\
+\texttt{native\_decide} & 把命题编译成本地代码来判定；信任编译器，但结果可由内核复核\\
+\texttt{\#eval} & 求值，不产生证明\\
+\texttt{import Mathlib} & 信任 mathlib 的公理（经典选择、命题外延、商类型可靠性）\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{warnbox}[本套代码的纪律]
+\texttt{lean/Riemann/} 下的所有 \emph{定理} 都没有 \texttt{axiom} 或 \texttt{sorry}。
+唯一的例外是 \texttt{Exercises.lean}：那里刻意留着 \texttt{sorry} 作为练习题，
+\texttt{lake build} 会打印 \texttt{declaration uses 'sorry'} 警告。
+\emph{看到这个警告，就知道这里欠一个证明}——这正是它存在的意义。
+\end{warnbox}
+
+\section{环境搭建}
+\label{sec:06-setup}
+
+本项目锁定 \textbf{Lean 4.36.0 + mathlib v4.36.0}（见
+\texttt{lean/lean-toolchain} 与 \texttt{lean/lakefile.toml}）。
+版本很重要：mathlib 的定理名会随版本改动，本教程中所有名字都按 v4.36.0 核对过。
+
+\begin{enumerate}[label=\arabic*.]
+  \item 安装 \texttt{elan}（Lean 工具链管理器）：
+        \texttt{curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh}
+  \item 在 \texttt{lean/} 目录下：
+\begin{lstlisting}[language=bash,numbers=none,frame=none,xleftmargin=0pt]
+lake update           # resolve and fetch mathlib v4.36.0
+lake exe cache get    # download precompiled .olean files
+lake build            # check every example
+lake exe demo         # run the small demo
+\end{lstlisting}
+  \item 编辑器：VS Code 安装 \texttt{lean4} 扩展，把 \texttt{lean/} 作为工作区根目录打开。
+        InfoView 会在光标处显示\emph{当前目标状态}（goal state），这是学战术最有效的工具。
+\end{enumerate}
+
+\texttt{lake exe cache get} 这一步容易出问题：缓存默认写到
+\texttt{\$HOME/.cache}。在受限环境里可以设
+\texttt{XDG\_CACHE\_HOME} 指到可写目录。仓库的 \texttt{README.md} 有排错说明。
+
+\section{第一个文件}
+\label{sec:06-first}
+
+下面是 \texttt{lean/Riemann/Basic.lean}，逐字来自仓库，并已通过内核检查：
+
+\leanfile[caption={lean/Riemann/Basic.lean：类型、命题与战术热身},label={lst:basic}]{../lean/Riemann/Basic.lean}
+
+逐段解释：
+
+\begin{description}[leftmargin=2.2em]
+  \item[\texttt{import Mathlib}] 导入整个数学库。教学文件用它是为了省事；
+        正式项目应只导入需要的模块。
+  \item[\texttt{namespace Riemann}] 给声明加命名空间，避免与库里的名字冲突。
+  \item[\texttt{def primesUpTo}] 一个\emph{可计算}的定义：
+        \texttt{Nat.Prime} 有 \texttt{Decidable} 实例，所以 \texttt{Finset.filter} 能算。
+  \item[\texttt{\#eval}] 求值，不产生证明。编译时它打印出
+        \texttt{\{2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47\}}。
+  \item[\texttt{by decide}] 让内核去算一个可判定的命题。
+        \texttt{Nat.Prime 97} 为真、\texttt{Nat.Prime 91} 为假，都由计算得出。
+  \item[\texttt{omega}] Presburger 算术（自然数/整数上的线性运算）自动证明。
+  \item[\texttt{ring}] 交换环上的多项式恒等式。
+  \item[\texttt{simp}] 用 simp 引理数据库化简；\texttt{norm\_num} 算具体数字。
+  \item[\texttt{hp.dvd\_mul.mp h}] 点记法：把库定理
+        \texttt{Nat.Prime.dvd\_mul : p ∣ m*n ↔ p ∣ m ∨ p ∣ n} 用作双向蕴含。
+\end{description}
+
+\section{三个最有用的命令}
+\label{sec:06-commands}
+
+\begin{lstlisting}[language=Lean,numbers=none,frame=none,xleftmargin=0pt]
+#check Nat.exists_infinite_primes
+-- Nat.exists_infinite_primes (n : ℕ) : ∃ p, n ≤ p ∧ Prime p
+
+#check Nat.isEquivalent_primeCounting
+-- ... : (fun x ↦ ↑(π ⌊x⌋₊)) ~[atTop] fun x ↦ x / Real.log x
+
+#check RiemannHypothesis
+-- RiemannHypothesis : Prop
+
+#print Nat.Prime       -- 打印定义
+#eval 2 + 2            -- 求值
+\end{lstlisting}
+
+\texttt{\#check} 只打印类型、不证明；它是"查数学库"最常用的手段。
+\texttt{\#print} 看定义（例如 \texttt{Nat.Prime} 展开是什么）。
+配合 VS Code 的自动补全、\texttt{\#find}、以及在线搜索工具
+\texttt{loogle.lean-lang.org}、\texttt{leansearch.net}，基本可以取代翻文档。
+
+\section{战术速查表}
+\label{sec:06-tactics}
+
+\begin{center}\small
+\begin{tabular}{@{}p{0.22\textwidth}p{0.72\textwidth}@{}}
+\toprule
+\textbf{战术} & \textbf{用途}\\
+\midrule
+\texttt{intro h} & 引入前提 / 拆解 $\forall,\to$\\
+\texttt{rcases h with ⟨a,b⟩} & 拆解 $\land,\exists$\\
+\texttt{refine ⟨?\_, ?\_⟩} & 构造 $\exists$ / 合取，留下子目标\\
+\texttt{exact h} / \texttt{apply f} & 直接给出项 / 反向套用定理\\
+\texttt{rw [h]} / \texttt{simp} & 重写 / 化简\\
+\texttt{by\_contra h} & 反证\\
+\texttt{induction n with | zero => ... | succ n ih => ...} & 归纳\\
+\texttt{omega} & 自然数/整数线性算术\\
+\texttt{ring} / \texttt{nlinarith} & 多项式恒等式 / 非线性不等式\\
+\texttt{norm\_num} & 具体数值\\
+\texttt{decide} / \texttt{native\_decide} & 可判定命题，交给计算\\
+\texttt{simpa} & \texttt{simp} 后立刻 \texttt{exact}\\
+\texttt{aesop} / \texttt{grind} & 自动搜索（谨慎使用，先自己想）\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{remark}[读 goal state]
+在 VS Code 里把光标放在 \texttt{by} 块内，InfoView 会显示类似
+\begin{lstlisting}[language=Lean,numbers=none,frame=none,xleftmargin=0pt]
+n : ℕ
+⊢ ∃ p, n ≤ p ∧ p.Prime
+\end{lstlisting}
+上面是\emph{上下文}，下面是\emph{目标}。每执行一条战术，目标就变一次；
+写证明就是"把目标变成没有目标"。下一章我们完整地走一遍这个过程。
+\end{remark}
+
+\section{小结}
+\label{sec:06-summary}
+
+\begin{enumerate}[label=\arabic*.]
+  \item 命题是类型，证明是项，内核只检查项的类型；
+  \item 信任被压缩到内核 + 少量公理；\texttt{sorry}/\texttt{axiom} 必须显式出现；
+  \item \texttt{\#check} 查类型、\texttt{by} 写证明、\texttt{InfoView} 看目标。
+\end{enumerate}

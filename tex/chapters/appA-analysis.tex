@@ -1,0 +1,80 @@
+\chapter{复分析工具箱}
+\label{app:analysis}
+
+本附录汇总第一编用到的技术工具，供需要时查阅。标 $\star$ 的证明在标准教材中可找到。
+
+\section{$\Gamma$ 函数}
+\begin{align}
+  \Gamma(s)&=\int_0^\infty \ee^{-t}t^{s-1}\dd t\quad(\Ree s>0),\\
+  \Gamma(s+1)&=s\Gamma(s),\quad \Gamma(n)=(n-1)!,\quad \Gamma(\tfrac12)=\sqrt\pi,\\
+  \Gamma(s)\Gamma(1-s)&=\frac{\pi}{\sin\pi s}\quad\text{（反射公式）},\\
+  \Gamma(s)\Gamma(s+\tfrac12)&=2^{1-2s}\sqrt\pi\,\Gamma(2s)\quad\text{（倍元公式）}.
+\end{align}
+$\Gamma$ 亚纯延拓到 $\C$，在 $s=0,-1,-2,\dots$ 有一阶极点，无零点。
+由反射与倍元公式可从 $\Lambda_0(s)=\Lambda_0(1-s)$ 推出
+\cref{eq:02-fe} 与 \cref{eq:02-fe3}（$\star$）。
+
+\section{Poisson 求和与 theta 变换}
+若 $f$ 足够好（Schwartz 函数即可），
+\begin{equation}
+  \sum_{n\in\Z}f(n)=\sum_{m\in\Z}\hat f(m),\qquad
+  \hat f(\xi)=\int_{\R}f(x)\ee^{-2\pi\iu x\xi}\dd x .
+\end{equation}
+高斯函数 $f(x)=\ee^{-\pi x^2}$ 满足 $\hat f=f$（其傅里叶变换是自身）。
+取 $f(x)=\ee^{-\pi t x^2}$ 得 $\hat f(\xi)=t^{-1/2}\ee^{-\pi\xi^2/t}$，
+于是 $\theta(t)=t^{-1/2}\theta(1/t)$，即 \cref{lem:02-theta}。
+
+\section{Mellin 变换与 Perron 公式}
+Mellin 变换 $(Mf)(s)=\int_0^\infty f(t)t^{s-1}\dd t$ 把 $f(\lambda t)$
+的伸缩变成乘以 $\lambda^{-s}$。反演为
+$f(t)=\frac{1}{2\pi\iu}\int_{c-\iu\infty}^{c+\iu\infty}(Mf)(s)t^{-s}\dd s$。
+特别地，取 $f(t)=\mathbf{1}_{t<1}$ 得 \cref{lem:03-perron}：
+$\frac{1}{2\pi\iu}\int \frac{y^{s}}{s}\dd s=\mathbf{1}_{y>1}$（主值处取 $1/2$）。
+对 Dirichlet 级数 $\sum a_n n^{-s}$，Perron 公式给出
+$\sum_{n\le x}' a_n=\frac{1}{2\pi\iu}\int F(s)\frac{x^s}{s}\dd s$。
+
+严谨化需要：把竖线积分截断到 $c\pm\iu T$、估计圆弧贡献、
+控制尾部，再令 $T\to\infty$。这是 \cref{sec:03-perron} 标 $\star$ 的原因。
+
+\section{整函数与 Hadamard 分解}
+若整函数 $f$ 的阶 $\rho<\infty$，则
+$f(z)=z^m\ee^{P(z)}\prod_n E_p(z/a_n)$，其中 $a_n$ 是非零零点，
+$E_p$ 是 Weierstrass 初级因子，$P$ 是次数 $\le\rho$ 的多项式。
+$\xi(s)$ 的阶为 $1$，配对零点后得到 \cref{eq:02-hadamard}：
+$\xi(s)=\tfrac12\prod_\rho(1-s/\rho)$。这是 Hadamard 1893 年补上的严格证明
+\cite{hadamard1893}。
+
+\section{渐近记号}
+\begin{center}\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+$f=\bigO(g)$ & $\exists C,\ \abs{f}\le C\abs{g}$（充分大时）\\
+$f=o(g)$ & $f/g\to0$\\
+$f\sim g$ & $f/g\to1$，即 \texttt{Lean} 里的 \texttt{IsEquivalent}\\
+$f\asymp g$ & $f=\bigO(g)$ 且 $g=\bigO(f)$\\
+\bottomrule
+\end{tabular}
+\end{center}
+注意 \texttt{Lean} 里 \texttt{f ~[atTop] g}（\texttt{Asymptotics.IsEquivalent}）
+正是 $f\sim g$ 的形式化，见 \cref{sec:07-pnt}。
+
+\section{常用恒等式速查}
+\begin{align}
+ \zeta(s)&=\sum_{n\ge1}n^{-s}=\prod_p(1-p^{-s})^{-1}\quad(\Ree s>1),\\
+ \log\zeta(s)&=\sum_{p,k}\frac{1}{k}p^{-ks},&
+ -\frac{\zeta'}{\zeta}(s)&=\sum_{n\ge1}\frac{\Lmb(n)}{n^{s}},\\
+ \Lambda_0(s)&=\pi^{-s/2}\Gamma(s/2)\zeta(s),&
+ \xi(s)&=\tfrac12 s(s-1)\Lambda_0(s),\\
+ \xi(s)&=\xi(1-s),&
+ \zeta(1-s)&=2(2\pi)^{-s}\cos\tfrac{\pi s}{2}\Gamma(s)\zeta(s),\\
+ J(x)&=\sum_{n\ge1}\frac1n\pi(x^{1/n}),&
+ \pi(x)&=\sum_{n\ge1}\frac{\mu(n)}{n}J(x^{1/n}),\\
+ \psi_0(x)&=x-\sum_\rho\frac{x^\rho}{\rho}-\log(2\pi)-\tfrac12\log(1-x^{-2}).
+\end{align}
+
+\section{数值方法备注}
+\cref{fig:02-zeta-real} 的 $\zeta(s)$ 用 Dirichlet eta 函数
+$\eta(s)=\sum(-1)^{n-1}n^{-s}$ 的 Euler 变换加速计算（对 $s>0$ 有效），
+再对 $s<0$ 用函数方程；$s=0$ 取 $\zeta(0)=-1/2$。
+脚本 \texttt{scripts/gen\_data.py} 对
+$\zeta(2),\zeta(-1),\zeta(1/2),\zeta(-2)$ 做了自检，误差在 $10^{-15}$ 量级。
