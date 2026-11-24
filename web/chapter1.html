@@ -75,6 +75,15 @@
   <div class="ch1-prose">
     <p><strong>定义.</strong> 整数 $p\ge2$ 称为<strong>素数</strong>，若它的正因子只有 $1$ 与 $p$。记 $a\mid b$ 表示 $a$ 整除 $b$。</p>
 
+    <div class="ch1-note">
+      <p><strong>记号 $\gcd(a,b)$（最大公因子，greatest common divisor）.</strong> 对不全为零的整数 $a,b$，$\gcd(a,b)$ 是<strong>同时整除 $a$ 与 $b$ 的最大正整数</strong>，即
+      $d=\gcd(a,b)$ 当且仅当 $d\mid a$、$d\mid b$，且任何同时整除 $a,b$ 的正整数 $c$ 都满足 $c\le d$。</p>
+      <p>例：$\gcd(12,18)=6$（公因子为 $1,2,3,6$）；$\gcd(8,9)=1$，此时称 $8$ 与 $9$ <strong>互素</strong>；若 $p$ 是素数且 $p\nmid a$，则 $\gcd(p,a)=1$（因为 $\gcd(p,a)$ 只能是 $1$ 或 $p$）。</p>
+      <p><strong>怎么算：欧几里得算法（辗转相除）.</strong> 用 $\gcd(a,b)=\gcd(b,\,a\bmod b)$ 反复缩小，直到 $\gcd(d,0)=d$。例如
+      $\gcd(12,18)=\gcd(18,12)=\gcd(12,6)=\gcd(6,0)=6$。每一步的余数都能回代成 $a,b$ 的整系数线性组合，这正是下面 Bézout 引理要证明的一般事实。</p>
+      <p><strong>其它写法.</strong> 数论书常把 $\gcd(a,b)$ 简记为 $(a,b)$；本讲义 §1.6 里的 $(a,q)=1$ 就是 $\gcd(a,q)=1$，读作「$a$ 与 $q$ 互素」。</p>
+    </div>
+
     <h3>引理 1.1（Bézout 恒等式）</h3>
     <p>对不全为零的整数 $a,b$，存在 $x,y\in\Z$ 使 $ax+by=\gcd(a,b)$。</p>
     <details class="ch1-proof" open><summary>展开完整证明</summary><div class="ch1-proof-body">
@@ -362,6 +371,7 @@
   <div class="ch1-table-wrapper" tabindex="0" role="region" aria-label="数学命题与 Lean 声明对照表">
     <table class="ch1-table"><thead><tr><th>数学命题</th><th>Lean 声明</th><th>状态</th></tr></thead><tbody>
       <tr><td>引理 A：每个 $n\ge2$ 有素因子</td><td><code>exists_prime_factor</code></td><td>本文件证明</td></tr>
+      <tr><td>$\gcd(a,b)=1$（互素）</td><td><code>Nat.Coprime a b</code>，即 <code>Nat.gcd a b = 1</code></td><td>mathlib 定义</td></tr>
       <tr><td>Euclid：$\forall n\ \exists p\ge n$</td><td><code>euclid</code> / <code>Nat.exists_infinite_primes</code></td><td>逐战术证明</td></tr>
       <tr><td>有限几何和</td><td><code>geom_sum_mul</code></td><td>归纳 + ring</td></tr>
       <tr><td>单素数欧拉因子 $= \sum_{d\mid p^K}1/d$</td><td><code>euler_factor_single_prime</code></td><td>一般形式，已证</td></tr>
@@ -387,6 +397,8 @@
       <div role="tabpanel" aria-labelledby="ch1-tab-ep" hidden="until-found"><div class="ch1-panel-inner"><pre><code></code></pre></div></div>
     </div>
   </div>
+
+  <div class="ch1-note"><strong>Bézout 系数在 mathlib 中.</strong> <code>Nat.gcd</code> 给出最大公因子；<code>Nat.gcdA</code>、<code>Nat.gcdB</code> 给出整系数，定理 <code>Nat.gcd_eq_gcd_ab</code> 陈述 $\gcd(x,y)=x\cdot\mathrm{gcdA}(x,y)+y\cdot\mathrm{gcdB}(x,y)$；辗转相除由 <code>Nat.gcd_rec</code> 给出 <code>m.gcd n = (n % m).gcd m</code>，而 <code>Nat.Coprime.gcd_eq_one</code> 把互素与 $\gcd=1$ 连起来。</div>
 
   <div class="ch1-note"><strong>关于"陈述"与"证明".</strong> <code>ZetaEulerProduct</code> 是一个 <code>Prop</code>：类型正确，但本项目<strong>没有</strong>给出它的证明项。同样地，<code>#check EulerProduct.eulerProduct_tprod</code> 只是打印 mathlib 中那条已证定理的类型。形式化的伦理是：欠着的步骤必须显式写成 <code>sorry</code>、<code>axiom</code> 或库定理，不能假装证完。</div>
 
