@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<script>try{var v=localStorage.getItem('ch1-color-scheme');document.querySelector('meta[name="color-scheme"]').content=v||'light dark';}catch(e){}</script>
+<meta name="description" content="第一章：欧拉——把素数装进一个函数。完整证明集与 Lean 4 形式化。">
+<title>第一章 · 欧拉：把素数装进一个函数</title>
+<link rel="stylesheet" href="vendor/katex.min.css">
+<link rel="stylesheet" href="chapter1.css">
+<script src="vendor/katex.min.js" defer></script>
+<script src="vendor/auto-render.min.js" defer></script>
+<script src="data.js" defer></script>
+<script src="chapter1.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#ch1-main">跳到正文</a>
+<div id="ch1-progress" aria-hidden="true"></div>
+
+<header class="ch1-header">
+  <div class="ch1-header-inner">
+    <a class="ch1-brand" href="index.html" aria-label="返回总讲义">← 总讲义</a>
+    <nav class="ch1-toc" aria-label="本章目录">
+      <a href="#ch1-0">地图</a>
+      <a href="#ch1-1">§1.1 算术基本定理</a>
+      <a href="#ch1-2">§1.2 ζ 的收敛</a>
+      <a href="#ch1-3">§1.3 欧拉乘积</a>
+      <a href="#ch1-4">§1.4 素数无穷多</a>
+      <a href="#ch1-5">§1.5 素数有多密</a>
+      <a href="#ch1-6">§1.6 Dirichlet</a>
+      <a href="#ch1-7">§1.7 复数 s</a>
+      <a href="#ch1-8">§1.8 Lean</a>
+      <a href="#ch1-9">§1.9 小结</a>
+    </nav>
+    <button type="button" id="ch1-settings-open" class="ch1-icon" aria-label="打开阅读设置">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="ch1-main">
+
+<section id="ch1-hero" class="ch1-hero" tabindex="-1" aria-labelledby="ch1-title">
+  <p class="ch1-kicker">第一章 · 独立详解版</p>
+  <h1 id="ch1-title">欧拉：把素数装进一个函数</h1>
+  <p class="ch1-sub">从算术基本定理到欧拉乘积，再到素数倒数之和的发散</p>
+  <p class="ch1-lead">这一章只做一件事：把"数素数"这个离散问题，变成一个关于级数的解析问题。这里把讲义里被一句「显然」跳过的<strong>每一步都补上完整证明</strong>——包括 Bézout 引理、算术基本定理、有限乘积的重排合法性、尾项估计、Chebyshev 与 Bertrand 定理——并在最后给出可由 Lean 内核检查的形式化版本。</p>
+  <p class="ch1-actions"><a class="ch1-btn primary" href="#ch1-1">从证明开始 ↓</a><a class="ch1-btn" href="#ch1-8">直接看 Lean →</a></p>
+</section>
+
+<section id="ch1-0" class="ch1-section" tabindex="-1" aria-labelledby="s0">
+  <div class="ch1-head"><p class="ch1-kicker">§1.0</p><h2 id="s0">本章地图与预备知识</h2></div>
+  <div class="ch1-prose">
+    <p>全章的链条是：</p>
+    <div class="math display" data-tex="\text{算术基本定理}\ \Longrightarrow\ \zeta(s)=\prod_p(1-p^{-s})^{-1}\ \Longrightarrow\ \sum_p\frac1p=\infty\ \Longrightarrow\ \pi(x)\ \text{的估计}."></div>
+    <p>只需要：整数整除、数学归纳法、级数收敛的基本判别、以及一点复数的模。凡是超出这个范围的地方都会明确标出。</p>
+    <p><strong>记号.</strong> $p$ 恒表示素数；$\pi(x)=\bigl|\{p\le x\}\bigr|$；$\log$ 是自然对数；$\zeta(s)=\sum_{n\ge1}n^{-s}$；$s=\sigma+\iu t$；$\Lambda$、$\mu$、$\Li$、$\psi$、$\theta$ 在用到时定义。</p>
+  </div>
+    <div class="ch1-note">
+      <p><strong>预备知识对照（只假设你学过高数、线代、概率统计）.</strong> 本章主体只用：整数整除、数学归纳法、级数收敛判别（高数）、线性组合（线代）。下面的名词偶尔出现，都配了「用学过的东西怎么理解」；标「可跳过」的不影响主线（算术基本定理 → 欧拉乘积 → $\sum 1/p$ 发散 → $\pi(x)$ 估计）。</p>
+      <p>· <strong>良序原理</strong>（§1.1、§1.4）：正整数集非空子集必有最小元，就是<strong>数学归纳法</strong>的另一种说法，下面单独讲，不超纲。
+      <br>· <strong>一致收敛 / Weierstrass M-判别法 / 全纯</strong>（§1.2）：高数里「函数项级数一致收敛」的判别法与「复变量可导」。可跳过：§1.3 的欧拉乘积证明只用「绝对收敛级数可以重排」。
+      <br>· <strong>Stirling 公式</strong>（§1.5）：$\log(N!)\approx N\log N-N$，把阶乘换成对数的近似。可跳过：只影响 Chebyshev 证明里误差项的大小，不影响结论。
+      <br>· <strong>二次剩余、有限群的特征</strong>（§1.6）：属于后续的代数/数论课。本章只要求读懂 $4k+3$ 那段 Euclid 式初等证明；一般 Dirichlet 定理只作陈述。
+      <br>· <strong>Perron / Mellin 反演</strong>（§1.7）：「从级数把系数取回来」的积分公式，第二章才真正用，这里只需知道「必须沿复平面里的一条竖线积分」。
+      <br>· <strong>拓扑</strong>（总讲义「素数无穷多」专题的 Furstenberg 证明）：选读，完全可跳过；Euclid、Euler、Erdős、Saidak 四个证明都不需要它。</p>
+      <p>另外，$\gcd(a,b)$、良序原理这类名词在第一次出现时都给了定义框（§1.1），不用查别处。</p>
+    </div>
+  <div class="ch1-table-wrapper" tabindex="0" role="region" aria-label="本章符号表">
+    <table class="ch1-table"><thead><tr><th>记号</th><th>定义</th><th>首次出现</th></tr></thead><tbody>
+      <tr><td>$a\mid b$</td><td>存在整数 $k$ 使 $b=ak$</td><td>§1.1</td></tr>
+      <tr><td>$\zeta(s)$</td><td>$\sum_{n\ge1} n^{-s}$，$\Ree s&gt;1$</td><td>§1.2</td></tr>
+      <tr><td>$\pi(x)$</td><td>不超过 $x$ 的素数个数</td><td>§1.5</td></tr>
+      <tr><td>$\Li(x)$</td><td>$\int_2^x \dd t/\log t$</td><td>§1.5</td></tr>
+      <tr><td>$\psi(x)$</td><td>$\sum_{p^k\le x}\log p$</td><td>§1.5</td></tr>
+      <tr><td>$\theta(x)$</td><td>$\sum_{p\le x}\log p$</td><td>§1.5</td></tr>
+      <tr><td>$\Lambda(n)$</td><td>$\log p$ 若 $n=p^k$，否则 $0$</td><td>§1.5</td></tr>
+    </tbody></table>
+  </div>
+</section>
+
+<section id="ch1-1" class="ch1-section" tabindex="-1" aria-labelledby="s1">
+  <div class="ch1-head"><p class="ch1-kicker">§1.1</p><h2 id="s1">素数与算术基本定理</h2><p class="ch1-deck">欧拉乘积的全部合法性，都压在这条定理上；这里给出完整证明。</p></div>
+  <div class="ch1-prose">
+    <p><strong>定义.</strong> 整数 $p\ge2$ 称为<strong>素数</strong>，若它的正因子只有 $1$ 与 $p$。记 $a\mid b$ 表示 $a$ 整除 $b$。</p>
+
+    <div class="ch1-note">
+      <p><strong>记号 $\gcd(a,b)$（最大公因子，greatest common divisor）.</strong> 对不全为零的整数 $a,b$，$\gcd(a,b)$ 是<strong>同时整除 $a$ 与 $b$ 的最大正整数</strong>，即
+      $d=\gcd(a,b)$ 当且仅当 $d\mid a$、$d\mid b$，且任何同时整除 $a,b$ 的正整数 $c$ 都满足 $c\le d$。</p>
+      <p>例：$\gcd(12,18)=6$（公因子为 $1,2,3,6$）；$\gcd(8,9)=1$，此时称 $8$ 与 $9$ <strong>互素</strong>；若 $p$ 是素数且 $p\nmid a$，则 $\gcd(p,a)=1$（因为 $\gcd(p,a)$ 只能是 $1$ 或 $p$）。</p>
+      <p><strong>怎么算：欧几里得算法（辗转相除）.</strong> 用 $\gcd(a,b)=\gcd(b,\,a\bmod b)$ 反复缩小，直到 $\gcd(d,0)=d$。例如
+      $\gcd(12,18)=\gcd(18,12)=\gcd(12,6)=\gcd(6,0)=6$。每一步的余数都能回代成 $a,b$ 的整系数线性组合，这正是下面 Bézout 引理要证明的一般事实。</p>
+      <p><strong>其它写法.</strong> 数论书常把 $\gcd(a,b)$ 简记为 $(a,b)$；本讲义 §1.6 里的 $(a,q)=1$ 就是 $\gcd(a,q)=1$，读作「$a$ 与 $q$ 互素」。</p>
+    </div>
+
+    <div class="ch1-note">
+      <p><strong>良序原理（Well-Ordering Principle）.</strong> 正整数集 $\Z_{&gt;0}=\{1,2,3,\dots\}$ 的<strong>任意非空子集都有最小元</strong>。它就是高数里用过的<strong>数学归纳法</strong>的另一种说法：从 $1$ 开始一个一个数，第一次落在这个集合里的数就是它的最小元；等价地，正整数不可能无穷地严格变小。例：正偶数集的最小元是 $2$；$\{n^2+1:\ n\ge1\}$ 的最小元也是 $2$。</p>
+      <p><strong>为什么必须限定「正整数」.</strong> 全体整数 $\Z$ 没有最小元（可以一直往负方向走）；正有理数、正实数也没有（总能再取一半）。所以下面把 $S$ 定义成「<em>正的</em>线性组合」之集，它才是 $\Z_{&gt;0}$ 的子集，良序原理才用得上。</p>
+      <p><strong>直观.</strong> 不存在无穷严格下降的正整数序列 $n_1&gt;n_2&gt;n_3&gt;\cdots$；任何一次「变小」都必须在有限步内停住（这就是高数里「单调下降且有下界必收敛」在整数上的离散版本）。Bézout 证明里的带余除法，正是把「$d$ 最小」翻译成「余数 $r$ 不能是正的」，从而 $r=0$、$d\mid a$。</p>
+      <p>本章 §1.4 的引理 A（每个整数 $m\ge2$ 有素因子）用的也是同一个原理：取 $m$ 的「最小的大于 $1$ 的因子」。</p>
+    </div>
+
+    <h3>引理 1.1（Bézout 恒等式）</h3>
+    <p>对不全为零的整数 $a,b$，存在 $x,y\in\Z$ 使 $ax+by=\gcd(a,b)$。</p>
+    <details class="ch1-proof" open><summary>展开完整证明</summary><div class="ch1-proof-body">
+      <p><strong>第 0 步（构造集合，并说明它非空）.</strong> 令</p>
+      <div class="math display" data-tex="S=\{au+bv:\ u,v\in\Z,\ au+bv&gt;0\}\ \subseteq\ \Z_{&gt;0},"></div>
+      <p>即「所有能写成 $a,b$ 整系数线性组合的<em>正</em>整数」之集——这和你在线性代数里见过的「由 $a,b$ 生成的线性组合」是同一回事，只不过系数只能是整数、且只保留结果为正的。因为 $a,b$ 不全为零，$a^2+b^2&gt;0$；取 $u=a, v=b$ 便得 $au+bv=a^2+b^2\in S$，故 $S\ne\varnothing$。更直接地：若 $a\ne0$，取 $(u,v)=(1,0)$ 或 $(-1,0)$ 使 $au=|a|&gt;0$；若 $a=0,b\ne0$，取 $(u,v)=(0,1)$ 或 $(0,-1)$ 使 $bv=|b|&gt;0$。</p>
+      <p>由良序原理，$S$ 有最小元，记作 $d=ax_0+by_0$（$x_0,y_0$ 是取到最小值的那组系数），且 $d&gt;0$。下面两步说明这个 $d$ 恰好就是 $\gcd(a,b)$。</p>
+      <p><em>第一步：$d\mid a$ 与 $d\mid b$。</em> 对 $a$ 作带余除法：$a=qd+r$，$0\le r&lt;d$。则
+      $r=a-qd=a-q(ax_0+by_0)=a(1-qx_0)+b(-qy_0)$ 是 $a,b$ 的整系数线性组合。若 $r&gt;0$，则 $r\in S$ 且 $r&lt;d$，与 $d$ 的最小性矛盾；故 $r=0$，即 $d\mid a$。同理 $d\mid b$。</p>
+      <p><em>第二步：$d$ 是<strong>最大</strong>公因子。</em> 任取一个<strong>正的</strong>公因子 $c&gt;0$，即 $c\mid a$ 且 $c\mid b$。按「整除」的定义，可以写成 $a=cm$、$b=cn$（$m,n$ 是整数）。把这两个式子代入 $d=ax_0+by_0$：</p>
+      <div class="math display" data-tex="d=ax_0+by_0=(cm)x_0+(cn)y_0=c\,(mx_0+ny_0)."></div>
+      <p>括号里的 $mx_0+ny_0$ 是整数，所以 $c\mid d$。这一步其实就是<strong>分配律</strong>：能被 $c$ 整除的数，乘上整数再相加，结果仍能被 $c$ 整除 —— 和你在线代里见过的「一组向量生成的线性组合对加法封闭」是同一种想法，不需要任何新工具。</p>
+      <p>接着由 $c\mid d$ 且 $c&gt;0,\ d&gt;0$：设 $d=c\cdot k$，商 $k$ 必是<strong>正</strong>整数（$k\ge1$，因为 $d&gt;0$），于是 $d=c\cdot k\ge c$，即 $c\le d$。这里必须把 $c$ 取成<strong>正的</strong>公因子：负的因子当然也整除，但没法比大小；而 $\gcd$ 按定义就是「最大的<strong>正</strong>公因子」，所以只考虑 $c&gt;0$ 就够了。</p>
+      <p>于是 $d$ 满足 $\gcd$ 定义的两条：(i) 第一步已证 $d\mid a$、$d\mid b$，且 $d&gt;0$，所以 $d$ 本身就是一个正公因子；(ii) 刚才证了任何正公因子 $c\le d$，所以 $d$ 是<strong>最大</strong>的那个。故 $d=\gcd(a,b)$。$\square$</p>
+      <div class="ch1-note"><p><strong>为什么「最小的线性组合」反而是「最大的公因子」？</strong> 这是整个证明最反直觉的一点：$d$ 是 $S$（所有<em>正</em>线性组合）里<strong>最小</strong>的；但任何公因子都必须整除<strong>每一个</strong>线性组合，特别要整除 $d$，于是公因子全都 $\le d$。所以「能凑出的最小正距离」恰好就是「能同时量尽 $a,b$ 的最大尺子」。</p>
+      <p>用 $a=12,\ b=18$ 走一遍：$S=\{12u+18v&gt;0\}$，其中每个数都是 $6(2u+3v)$；取 $u=-1,\ v=1$ 得 $12(-1)+18(1)=6$，这就是最小元 $d=6$。而 $12,18$ 的正公因子是 $1,2,3,6$，全都 $\le6$，正是 $\gcd(12,18)=6$。</p></div>
+    </div></details>
+
+    <h3>引理 1.2（欧几里得引理）</h3>
+    <p>若 $p$ 为素数且 $p\mid ab$，则 $p\mid a$ 或 $p\mid b$。</p>
+    <details class="ch1-proof" open><summary>展开完整证明</summary><div class="ch1-proof-body">
+      <p>设 $p\nmid a$。因为 $p$ 是素数，$\gcd(p,a)$ 只能是 $1$ 或 $p$；后者会给出 $p\mid a$，故 $\gcd(p,a)=1$。由引理 1.1 存在 $x,y\in\Z$ 使 $xp+ya=1$。两边乘 $b$：</p>
+      <div class="math display" data-tex="b=xpb+yab."></div>
+      <p>$p\mid xpb$ 显然；$p\mid ab$ 由假设，故 $p\mid yab$。于是 $p$ 整除两项之和，即 $p\mid b$。$\square$</p>
+      <p>对多个因子的推广：若 $p\mid n_1n_2\cdots n_r$，反复应用上式即得 $p$ 整除某个 $n_i$。</p>
+    </div></details>
+
+    <h3>定理 1.3（算术基本定理）</h3>
+    <p>每个 $n\ge2$ 可写成 $n=p_1^{a_1}\cdots p_k^{a_k}$（$p_1&lt;\cdots&lt;p_k$ 素数，$a_i\ge1$）；不计次序时写法唯一。</p>
+    <details class="ch1-proof" open><summary>展开完整证明（存在性 + 唯一性）</summary><div class="ch1-proof-body">
+      <p><strong>存在性（强归纳）.</strong> $n=2$ 时成立。设对所有 $2\le m&lt;n$ 成立。若 $n$ 是素数，取 $k=1,a_1=1$ 即可。否则 $n=uv$ 且 $1&lt;u,v&lt;n$；由归纳假设 $u,v$ 各有素因子分解，把两式相乘并按素因子合并指数，即得到 $n$ 的分解。</p>
+      <p><strong>唯一性.</strong> 设 $n=p_1\cdots p_r=q_1\cdots q_s$（允许重复，按从小到大排列）。由 $p_1\mid q_1\cdots q_s$ 与引理 1.2 的推广，$p_1\mid q_j$ 对某个 $j$；$q_j$ 是素数，故只能 $p_1=q_j$。两边约去这个因子，对 $n/p_1$ 重复（或作归纳），得 $r=s$ 且重排后 $p_i=q_i$ 逐个相等。于是每个素数的指数也相同。$\blacksquare$</p>
+      <p><strong>为什么这一步不能省.</strong> 欧拉乘积把"整数 $n$"与"指数组 $(k_p)$"一一对应，靠的正是唯一性；没有它，展开有限乘积时同一个 $n$ 会被数多次。</p>
+    </div></details>
+
+    <div class="ch1-note"><strong>推论.</strong> 对 $\sigma&gt;1$，每个 $n\ge1$ 唯一对应一个有限支撑的指数函数 $(e_p)_{p}$，$n=\prod p^{e_p}$。这就是 §1.3 有限乘积展开的字典。</div>
+  </div>
+</section>
+
+<section id="ch1-2" class="ch1-section" tabindex="-1" aria-labelledby="s2">
+  <div class="ch1-head"><p class="ch1-kicker">§1.2</p><h2 id="s2">$\zeta(s)$ 的定义与收敛</h2><p class="ch1-deck">先把级数本身说清楚：它在哪里收敛、为什么可以逐项操作。</p></div>
+  <div class="ch1-prose">
+    <p><strong>定义.</strong> 对复数 $s=\sigma+\iu t$，令 $n^{-s}=\exp(-s\log n)$（取实对数 $\log n$），于是 $\abs{n^{-s}}=n^{-\sigma}$。级数 $\zeta(s)=\sum_{n\ge1}n^{-s}$ 称为 Riemann zeta 函数的 Dirichlet 级数（只在收敛处等于 $\zeta$）。</p>
+
+    <h3>引理 1.4（收敛与一致收敛）</h3>
+    <p>$\sum n^{-s}$ 在 $\sigma&gt;1$ 绝对收敛，且在任何半平面 $\sigma\ge1+\delta$（$\delta&gt;0$）上一致绝对收敛。</p>
+    <details class="ch1-proof" open><summary>展开完整证明</summary><div class="ch1-proof-body">
+      <p><em>实数情形的积分判别.</em> 对 $\sigma&gt;1$ 与 $n\ge2$，函数 $x\mapsto x^{-\sigma}$ 在 $[n-1,n]$ 上递减，故</p>
+      <div class="math display" data-tex="n^{-\sigma}\le\int_{n-1}^{n}x^{-\sigma}\dd x."></div>
+      <p>求和得</p>
+      <div class="math display" data-tex="\sum_{n=2}^{\infty}n^{-\sigma}\le\int_1^{\infty}x^{-\sigma}\dd x=\frac1{\sigma-1},\qquad \zeta(\sigma)\le 1+\frac1{\sigma-1}&lt;\infty."></div>
+      <p>同理 $\sum_{n&gt;N}n^{-\sigma}\le\int_N^\infty x^{-\sigma}\dd x=N^{1-\sigma}/(\sigma-1)\to0$，这是后面尾项估计要用的形式。</p>
+      <p><em>复数情形.</em> $\abs{n^{-s}}=n^{-\sigma}\le n^{-(1+\delta)}$，而 $\sum n^{-(1+\delta)}&lt;\infty$。由 Weierstrass M-判别法，级数在 $\sigma\ge1+\delta$ 上一致绝对收敛；由 Weierstrass 定理（一致收敛的全纯函数项级数可逐项求导），$\zeta$ 在该半平面全纯。$\square$</p>
+      <p>注意 $\sigma=1$ 处调和级数发散，所以 $\sigma&gt;1$ 是 Dirichlet 级数的<strong>收敛横坐标</strong>；第二章会用 $\Gamma$ 与 theta 函数把它延拓到整个复平面。</p>
+    </div></details>
+  </div>
+</section>
+
+<section id="ch1-3" class="ch1-section" tabindex="-1" aria-labelledby="s3">
+  <div class="ch1-head"><p class="ch1-kicker">§1.3 · 本章核心</p><h2 id="s3">欧拉乘积公式（完整证明）</h2><p class="ch1-deck">左边完全不提素数，右边只提素数。</p></div>
+  <div class="ch1-prose">
+    <div class="math display" data-tex="\zeta(s)=\sum_{n=1}^{\infty}\frac1{n^s}=\prod_p\frac1{1-p^{-s}}=\prod_p\left(1+p^{-s}+p^{-2s}+\cdots\right),\qquad \Ree s&gt;1."></div>
+
+    <h3>引理 1.5（有限乘积展开）</h3>
+    <p>设 $P$ 是<strong>有限</strong>素数集，记 $\langle P\rangle=\{n\ge1:\ n\ \text{的素因子全在}\ P\}$。则对 $\sigma&gt;1$，</p>
+    <div class="math display" data-tex="\prod_{p\in P}\sum_{k=0}^{\infty}p^{-ks}=\sum_{n\in\langle P\rangle}n^{-s}."></div>
+    <details class="ch1-proof" open><summary>展开完整证明（含重排合法性）</summary><div class="ch1-proof-body">
+      <p><em>第一步：两个绝对收敛级数可以相乘.</em> 若 $\sum_i a_i$、$\sum_j b_j$ 绝对收敛，则
+      $\big(\sum_i a_i\big)\big(\sum_j b_j\big)=\sum_{i,j}a_ia_j$，因为二重级数 $\sum_{i,j}\abs{a_ib_j}=\big(\sum\abs{a_i}\big)\big(\sum\abs{b_j}\big)&lt;\infty$，由 Tonelli/Fubini 可任意重排。对有限多个因子反复使用即可。</p>
+      <p><em>第二步：把选择翻译成整数.</em> 展开左边时，每一项来自为每个 $p\in P$ 选一个指数 $k_p\ge0$，贡献 $\prod_{p\in P}p^{-k_ps}=\big(\prod_{p\in P}p^{k_p}\big)^{-s}$。由算术基本定理（定理 1.3），映射 $(k_p)_{p\in P}\mapsto n=\prod p^{k_p}$ 是到 $\langle P\rangle$ 的<strong>双射</strong>。故所有项恰好是 $\{n^{-s}:n\in\langle P\rangle\}$，各出现一次。$\square$</p>
+      <p>注意这里 $P$ <strong>必须有限</strong>：无限多个无穷级数相乘的重排需要额外论证，正是主定理要解决的。</p>
+    </div></details>
+
+    <h3>定理 1.6（欧拉乘积公式）</h3>
+    <p>对 $\Ree s=\sigma&gt;1$，$\zeta(s)=\prod_p(1-p^{-s})^{-1}$，且右侧无限乘积绝对收敛。</p>
+    <details class="ch1-proof" open><summary>展开完整证明（三步 + 复数尾项）</summary><div class="ch1-proof-body">
+      <p><strong>第 1 步（有限乘积）.</strong> 取 $P_N=\{p\le N\}$。由引理 1.5，</p>
+      <div class="math display" data-tex="\Pi_N(s):=\prod_{p\le N}\left(1-p^{-s}\right)^{-1}=\sum_{n\in\langle P_N\rangle}n^{-s}."></div>
+      <p><strong>第 2 步（夹逼）.</strong> 若 $n\le N$，则 $n$ 的每个素因子 $\le n\le N$，故 $n\in\langle P_N\rangle$。于是 $\sum_{n\le N}n^{-s}$ 是 $\Pi_N(s)$ 右端的一部分，且</p>
+      <div class="math display" data-tex="\abs{\Pi_N(s)}\le\sum_{n\in\langle P_N\rangle}n^{-\sigma}\le\zeta(\sigma)."></div>
+      <p><strong>第 3 步（尾项估计，复数 $s$ 也成立）.</strong> $\Pi_N(s)$ 与部分和 $\sum_{n\le N}n^{-s}$ 的差，来自那些"含某个 $&gt;N$ 的素因子"或"$&gt;N$"的 $n$；无论如何 $n&gt;N$。故</p>
+      <div class="math display" data-tex="\left|\Pi_N(s)-\sum_{n\le N}n^{-s}\right|\le\sum_{n&gt;N}n^{-\sigma}\le\frac{N^{1-\sigma}}{\sigma-1}\xrightarrow[N\to\infty]{}0."></div>
+      <p>而 $\sum_{n\le N}n^{-s}\to\zeta(s)$，故 $\Pi_N(s)\to\zeta(s)$。</p>
+      <p><strong>乘积绝对收敛.</strong> $\sum_p\abs{p^{-s}}=\sum_p p^{-\sigma}\le\sum_{n\ge2}n^{-\sigma}&lt;\infty$，故 $\prod(1-p^{-s})^{-1}$ 绝对收敛（等价地 $\sum_p\abs{(1-p^{-s})^{-1}-1}&lt;\infty$）。$\blacksquare$</p>
+    </div></details>
+
+    <h3>推论与对数展开</h3>
+    <p><strong>(a) $\zeta(s)\ne0$ 当 $\sigma&gt;1$.</strong> 每个因子 $(1-p^{-s})^{-1}\ne0$；又绝对收敛乘积的部分积取对数后收敛，故极限不为 $0$。</p>
+    <p><strong>(b) $\log\zeta(s)$ 的展开.</strong> 由 $-\log(1-x)=\sum_{k\ge1}x^k/k$（$\abs{x}&lt;1$）与绝对收敛保证的重排：</p>
+    <div class="math display" data-tex="\log\zeta(s)=\sum_p\sum_{k\ge1}\frac{p^{-ks}}{k}=\sum_p\frac1{p^s}+R(s),\qquad R(s)=\sum_p\sum_{k\ge2}\frac{1}{k\,p^{ks}}."></div>
+    <p>并且 $R(s)$ 在 $\sigma\ge1$ 上一致有界（§1.4 会用到）：</p>
+    <div class="math display" data-tex="\sum_{k\ge2}\frac{1}{k\,p^{k\sigma}}\le\sum_{k\ge2}p^{-k}=\frac1{p(p-1)}\le\frac2{p^2},\qquad |R(s)|\le2\sum_{n\ge2}\frac1{n^2}&lt;4."></div>
+
+    <div class="ch1-note warn"><strong>三个常见误区.</strong>
+      <br>① 不能把 $s=1$ 代进去：此时 $\prod(1-1/p)^{-1}$ 与调和级数一起发散；这正是 $\zeta$ 的极点。
+      <br>② 不能把"有限乘积展开"直接对无限 $P$ 使用——重排合法性来自绝对收敛 + 尾项估计，不是自动的。
+      <br>③ $\prod_p(1-p^{-s})^{-1}$ 的收敛是<strong>条件</strong>于 $\sigma&gt;1$ 的；第二章的解析延拓给出的是另一个（相等的）对象。</div>
+  </div>
+
+  <h3 class="ch1-subhead">动手实验 A · 有限欧拉乘积的收敛</h3>
+  <div class="ch1-lab" aria-labelledby="labA">
+    <h4 id="labA">拖动 $s$ 与素数个数 $N$，看 $\prod_{p\le p_N}(1-p^{-s})^{-1}\to\zeta(s)$</h4>
+    <div class="ch1-controls">
+      <div class="ch1-control"><label for="A-s">实部 $s$</label><input type="range" id="A-s" min="1.2" max="4" step="0.05" value="2"><output for="A-s" id="A-s-out">2.00</output></div>
+      <div class="ch1-control"><label for="A-n">素数个数 $N$</label><input type="range" id="A-n" min="1" max="120" step="1" value="10"><output for="A-n" id="A-n-out">10</output></div>
+    </div>
+    <canvas id="A-canvas" role="img" aria-label="有限欧拉乘积收敛到 ζ(s) 的曲线"></canvas>
+    <div class="ch1-readout" aria-live="polite">
+      <div><span>$\zeta(s)$</span><strong id="A-zeta">—</strong></div>
+      <div><span>部分乘积</span><strong id="A-partial">—</strong></div>
+      <div><span>相对误差</span><strong id="A-err">—</strong></div>
+    </div>
+  </div>
+
+  <h3 class="ch1-subhead">动手实验 B · 一般单素数恒等式</h3>
+  <div class="ch1-lab" aria-labelledby="labB">
+    <h4 id="labB">$\sum_{k=0}^{K}p^{-k}=\sum_{d\mid p^{K}}1/d$ —— 对每个素数 $p$、每个 $K$ 都成立</h4>
+    <p class="ch1-labnote">这条恒等式是欧拉乘积的"单因子版"，也是下面 <code>Chapter1.lean</code> 里 <code>euler_factor_single_prime</code> 形式化的命题。它只用到"<strong>素数幂的因子恰是 $1,p,\dots,p^K$</strong>"。</p>
+    <div class="ch1-controls">
+      <div class="ch1-control"><label for="B-p">素数 $p$</label><input type="range" id="B-p" min="1" max="8" step="1" value="1"><output for="B-p" id="B-p-out">2</output></div>
+      <div class="ch1-control"><label for="B-k">指数上界 $K$</label><input type="range" id="B-k" min="0" max="6" step="1" value="3"><output for="B-k" id="B-k-out">3</output></div>
+    </div>
+    <div class="ch1-readout" aria-live="polite">
+      <div><span>$\sum_{k\le K}p^{-k}$</span><strong id="B-lhs">—</strong></div>
+      <div><span>$p^K$ 的因子</span><strong id="B-div">—</strong></div>
+      <div><span>$\sum_{d\mid p^K}1/d$</span><strong id="B-rhs">—</strong></div>
+      <div><span>是否相等</span><strong id="B-ok">—</strong></div>
+    </div>
+  </div>
+</section>
+
+<section id="ch1-4" class="ch1-section" tabindex="-1" aria-labelledby="s4">
+  <div class="ch1-head"><p class="ch1-kicker">§1.4</p><h2 id="s4">素数有无穷多个：两个完整证明</h2><p class="ch1-deck">一个用整除，一个用级数；后者还给出 $\sum 1/p\sim\log\log N$。</p></div>
+  <div class="ch1-prose">
+    <h3>引理 A（最小素因子）</h3>
+    <p>每个整数 $m\ge2$ 至少有一个素因子。证明：集合 $\{d&gt;1:\ d\mid m\}$ 非空，取最小元 $d$；若 $d=uv$ 且 $1&lt;u&lt;d$，则 $u\mid m$ 与最小性矛盾，故 $d$ 为素数。</p>
+
+    <h3>证明 I · Euclid（约前 300）</h3>
+    <details class="ch1-proof" open><summary>展开完整证明</summary><div class="ch1-proof-body">
+      <p>反设全部素数为 $p_1&lt;\cdots&lt;p_k$。令 $N=p_1\cdots p_k+1\ge3$。由引理 A，$N$ 有素因子 $q$；由反设 $q=p_j$。于是 $q\mid p_1\cdots p_k$ 且 $q\mid N$，故 $q\mid N-p_1\cdots p_k=1$，与 $q\ge2$ 矛盾。$\blacksquare$</p>
+      <p><strong>构造性读法.</strong> 对任意有限素数集 $S$，$M=\prod_{p\in S}p+1&gt;1$ 的任一素因子都不在 $S$（否则该素数整除 $1$）。从 $S=\{2\}$ 出发可无限生成新素数。注意 $M$ 本身<strong>不必</strong>是素数：$30031=59\times509$。</p>
+      <p><strong>定量推论.</strong> $p_n\le2^{2^{n-1}}$：归纳，$p_{n+1}\le p_1\cdots p_n+1\le2^{2^n-1}+1\le2^{2^n}$。</p>
+    </div></details>
+
+    <h3>证明 II · Euler（1737）：$\sum_p 1/p$ 发散</h3>
+    <details class="ch1-proof" open><summary>展开完整证明（含全部六步估计）</summary><div class="ch1-proof-body">
+      <p><strong>第 1 步.</strong> 由定理 1.6 的推论 (b)，对 $\sigma&gt;1$：</p>
+      <div class="math display" data-tex="\log\zeta(\sigma)=S(\sigma)+R(\sigma),\quad S(\sigma)=\sum_p p^{-\sigma},\quad 0\le R(\sigma)&lt;4."></div>
+      <p><strong>第 2 步.</strong> 由引理 1.4 的积分比较，$\zeta(\sigma)\ge\int_1^\infty x^{-\sigma}\dd x=\frac1{\sigma-1}\to\infty$，故 $\log\zeta(\sigma)\to\infty$ 当 $\sigma\to1^+$。</p>
+      <p><strong>第 3 步.</strong> 于是 $S(\sigma)=\log\zeta(\sigma)-R(\sigma)\to\infty$。</p>
+      <p><strong>第 4 步（反证）.</strong> 若 $\sum_p1/p=S&lt;\infty$，则对每个 $\sigma&gt;1$ 有 $p^{-\sigma}\le p^{-1}$，故 $S(\sigma)\le S$（令 $\sigma\downarrow1$ 由单调收敛定理取极限）。与第 3 步矛盾。故 $\sum_p1/p=\infty$，特别地素数无穷多。$\blacksquare$</p>
+      <p><strong>完全初等的版本（不用 $\zeta$）.</strong> 每个 $n\le N$ 的素因子都 $\le N$，故</p>
+      <div class="math display" data-tex="H_N=\sum_{n\le N}\frac1n\le\prod_{p\le N}\left(1-\frac1p\right)^{-1}."></div>
+      <p>取对数，用 $-\log(1-x)\le x+2x^2$（$0\le x\le\frac12$，因 $\sum_{k\ge2}x^k/k\le x^2/(1-x)\le2x^2$）与 $H_N\ge\log N$：</p>
+      <div class="math display" data-tex="\sum_{p\le N}\frac1p\ \ge\ \log H_N-2\sum_{n\ge2}\frac1{n^2}\ \ge\ \log\log N-C\ \longrightarrow\ \infty."></div>
+      <p>更精确的定理（Mertens, 1874）：$\sum_{p\le x}1/p=\log\log x+M+\bigO(1/\log x)$，$M\approx0.2619$。下图把这"极慢的发散"画出来。</p>
+    </div></details>
+  </div>
+
+  <h3 class="ch1-subhead">动手实验 C · $\sum_{p\le N}1/p$ 与 $\log\log N$</h3>
+  <div class="ch1-lab" aria-labelledby="labC">
+    <h4 id="labC">把上限 $N$ 拖大，看两条曲线只差一个有界常数</h4>
+    <div class="ch1-controls"><div class="ch1-control"><label for="C-n">上限 $N$</label><input type="range" id="C-n" min="100" max="200000" step="100" value="100000"><output for="C-n" id="C-n-out">100000</output></div></div>
+    <canvas id="C-canvas" role="img" aria-label="素数倒数部分和与 log log N 曲线"></canvas>
+    <div class="ch1-readout" aria-live="polite">
+      <div><span>$\pi(N)$</span><strong id="C-pi">—</strong></div>
+      <div><span>$\sum_{p\le N}1/p$</span><strong id="C-sum">—</strong></div>
+      <div><span>$\log\log N$</span><strong id="C-ll">—</strong></div>
+      <div><span>差值</span><strong id="C-diff">—</strong></div>
+    </div>
+  </div>
+</section>
+
+<section id="ch1-5" class="ch1-section" tabindex="-1" aria-labelledby="s5">
+  <div class="ch1-head"><p class="ch1-kicker">§1.5</p><h2 id="s5">素数有多密：$\pi(x)$、Chebyshev 与 Bertrand</h2><p class="ch1-deck">从"无穷多"到"大约 $x/\log x$"，给出 Chebyshev 与 Bertrand 的完整推导。</p></div>
+  <div class="ch1-prose">
+    <p><strong>定义.</strong> $\pi(x)=\bigl|\{p\le x\}\bigr|$；$\Li(x)=\int_2^x \dd t/\log t$；</p>
+    <div class="math display" data-tex="\theta(x)=\sum_{p\le x}\log p,\qquad \psi(x)=\sum_{p^k\le x}\log p,\qquad \Lambda(n)=\begin{cases}\log p&amp;n=p^k\\0&amp;\text{否则}\end{cases}."></div>
+    <p>于是 $\psi(x)=\sum_{n\le x}\Lambda(n)$，且 $\psi(x)=\theta(x)+\theta(x^{1/2})+\theta(x^{1/3})+\cdots$（有限和，因为 $x^{1/k}&lt;2$ 时 $\theta=0$）。</p>
+
+    <h3>引理 1.7（$\log n$ 的素因子分解）</h3>
+    <p>$\log n=\sum_{p^k\mid n}\log p$。</p>
+    <details class="ch1-proof"><summary>展开完整证明</summary><div class="ch1-proof-body">
+      <p>写 $n=\prod_p p^{e_p}$（定理 1.3）。则 $\log n=\sum_p e_p\log p$。而 $p^k\mid n\iff 1\le k\le e_p$，故 $\sum_{p^k\mid n}\log p=\sum_p\sum_{k=1}^{e_p}\log p=\sum_p e_p\log p$。两者相等。$\square$</p>
+    </div></details>
+
+    <h3>引理 1.8（$T(x)$ 与 $\psi$ 的卷积恒等式）</h3>
+    <p>令 $T(x)=\sum_{n\le x}\log n=\log(\lfloor x\rfloor!)$。则 $T(x)=\sum_{m\le x}\psi(x/m)$。</p>
+    <details class="ch1-proof"><summary>展开完整证明</summary><div class="ch1-proof-body">
+      <p>由引理 1.7，</p>
+      <div class="math display" data-tex="T(x)=\sum_{n\le x}\sum_{p^k\mid n}\log p=\sum_{p^k\le x}\log p\cdot\#\{m:\ p^k m\le x\}=\sum_{p^k\le x}\log p\left\lfloor\frac{x}{p^k}\right\rfloor."></div>
+      <p>交换视角：按 $m$ 分组，$\lfloor x/p^k\rfloor$ 计数的是满足 $p^k\le x/m$ 的素数幂，故上式 $=\sum_{m\le x}\sum_{p^k\le x/m}\log p=\sum_{m\le x}\psi(x/m)$。所有求和都是有限的，交换合法。$\square$</p>
+    </div></details>
+
+    <h3>定理 1.9（Chebyshev，1848/1850）</h3>
+    <p>存在常数 $0&lt;c_1&lt;1&lt;c_2$ 使充分大的 $x$ 满足 $c_1\dfrac{x}{\log x}\le\pi(x)\le c_2\dfrac{x}{\log x}$；等价地 $\psi(x)\asymp x$。</p>
+    <details class="ch1-proof" open><summary>展开完整证明（交替和 + Stirling）</summary><div class="ch1-proof-body">
+      <p><strong>第 1 步（构造交替和）.</strong> 由引理 1.8，</p>
+      <div class="math display" data-tex="A(x):=T(x)-2T(x/2)=\sum_{m\le x}\psi(x/m)-2\sum_{m\le x/2}\psi(x/(2m))=\sum_{m\le x}(-1)^{m+1}\psi(x/m)."></div>
+      <p>由于 $\psi$ 单调不减且 $\psi(x/m)$ 随 $m$ 递减，这个交错级数满足</p>
+      <div class="math display" data-tex="\psi(x)-\psi(x/2)\ \le\ A(x)\ \le\ \psi(x)."></div>
+      <p><strong>第 2 步（Stirling 给出 $A(x)$ 的主项）.</strong> $\log(N!)=N\log N-N+\bigO(\log N)$，故</p>
+      <div class="math display" data-tex="T(x)=x\log x-x+\bigO(\log x),\quad A(x)=x\log x-2\cdot\frac x2\log\frac x2+\bigO(\log x)=x\log 2+\bigO(\log x)."></div>
+      <p><strong>第 3 步（$\psi$ 的上界）.</strong> 由第 1 步右半 $\psi(x)-\psi(x/2)\le A(x)\le x\log2+\bigO(\log x)$。把 $x,x/2,x/4,\dots$ 的不等式相加（$\psi(x/2^k)=0$ 当 $x/2^k&lt;2$），得</p>
+      <div class="math display" data-tex="\psi(x)\le 2x\log 2+\bigO(\log^2 x)=:C_2 x\quad(\text{大 }x)."></div>
+      <p><strong>第 4 步（$\psi$ 的下界）.</strong> 由第 1 步左半 $\psi(x)\ge A(x)=x\log2+\bigO(\log x)\ge C_1 x$（$C_1=\log2/2$ 对大 $x$ 可行）。故 $\psi(x)\asymp x$。</p>
+      <p><strong>第 5 步（转成 $\pi(x)$）.</strong> 一方面 $\theta(x)\le\pi(x)\log x$，且 $\psi(x)=\theta(x)+\bigO(\sqrt x\log x)$，故</p>
+      <div class="math display" data-tex="\pi(x)\ge\frac{\theta(x)}{\log x}\ge\frac{\psi(x)-\bigO(\sqrt x\log x)}{\log x}\ge\frac{C_1}{2}\cdot\frac{x}{\log x}."></div>
+      <p>另一方面，$\sqrt x&lt;p\le x$ 的素数每个贡献 $\log p\ge\frac12\log x$，故</p>
+      <div class="math display" data-tex="\pi(x)\le\sqrt x+\frac{\theta(x)}{\tfrac12\log x}\le\sqrt x+\frac{2C_2 x}{\log x}\le 3C_2\frac{x}{\log x}."></div>
+      <p>合并即得定理。切比雪夫本人得到更精确的常数 $0.92129$ 与 $1.10555$。$\blacksquare$</p>
+      <p><strong>说明.</strong> 这里 $\bigO(\cdot)$ 中的常数来自 Stirling 公式；把 $\bigO$ 全部展开成显式不等式即可写成完全初等的形式，结论不变。</p>
+    </div></details>
+
+    <h3>定理 1.10（Bertrand／切比雪夫，1850）</h3>
+    <p>对每个 $n\ge1$，区间 $(n,2n]$ 中至少有一个素数。</p>
+    <details class="ch1-proof" open><summary>展开完整证明（Erdős 的中心二项式系数法）</summary><div class="ch1-proof-body">
+      <p>记 $C=\binom{2n}{n}=\dfrac{(2n)!}{(n!)^2}$。</p>
+      <p><strong>第 1 步（$C$ 的上下界）.</strong> $\sum_{k=0}^{2n}\binom{2n}{k}=4^n$，共 $2n+1$ 项，最大项是 $C$，故</p>
+      <div class="math display" data-tex="\frac{4^n}{2n+1}\le C\le 4^n."></div>
+      <p><strong>第 2 步（$p$-进赋值）.</strong> 由 Legendre 公式 $\nu_p(N!)=\sum_{j\ge1}\lfloor N/p^j\rfloor$，</p>
+      <div class="math display" data-tex="\nu_p(C)=\sum_{j\ge1}\left(\left\lfloor\frac{2n}{p^j}\right\rfloor-2\left\lfloor\frac{n}{p^j}\right\rfloor\right)\le\frac{\log 2n}{\log p},\qquad p^{\nu_p(C)}\le 2n."></div>
+      <p>且当 $p&gt;\sqrt{2n}$ 时只有 $j=1$ 项，$\lfloor2n/p\rfloor-2\lfloor n/p\rfloor\in\{0,1\}$，故 $\nu_p(C)\in\{0,1\}$。</p>
+      <p><strong>第 3 步（大素数不出现）.</strong> 若 $\frac{2n}{3}&lt;p\le n$，则 $\lfloor2n/p\rfloor=2$、$\lfloor n/p\rfloor=1$，故 $\nu_p(C)=0$。因此 $C$ 的素因子若 $&gt;\sqrt{2n}$，必 $\le 2n/3$ 或落在 $(n,2n]$。</p>
+      <p><strong>第 4 步（反设）.</strong> 设 $(n,2n]$ 中无素数。把 $C$ 的素因子分成两类：</p>
+      <div class="math display" data-tex="C=\prod_{p\le\sqrt{2n}}p^{\nu_p(C)}\cdot\prod_{\sqrt{2n}&lt;p\le 2n/3}p^{\nu_p(C)}\le (2n)^{\sqrt{2n}}\cdot\prod_{p\le 2n/3}p."></div>
+      <p><strong>第 5 步（素数连乘积的界）.</strong> 引理：$\prod_{p\le x}p\le4^x$。证明（归纳）：$\binom{2m+1}{m}\le4^m$，而每个 $m+2\le p\le2m+1$ 的素数恰整除此二项式一次，故 $\prod_{m+2\le p\le2m+1}p\le4^m$；配合归纳假设 $\prod_{p\le m+1}p\le4^{m+1}$ 得 $\prod_{p\le2m+1}p\le4^{2m+1}$，对一般 $x$ 取整即得。</p>
+      <p>代入第 4 步：</p>
+      <div class="math display" data-tex="C\le(2n)^{\sqrt{2n}}\,4^{2n/3}."></div>
+      <p><strong>第 6 步（矛盾）.</strong> 与第 1 步比较：</p>
+      <div class="math display" data-tex="\frac{4^{n/3}}{2n+1}\le(2n)^{\sqrt{2n}}."></div>
+      <p>左边指数增长（$\approx e^{0.462n}$），右边是 $\exp(\sqrt{2n}\log2n)$ 的次指数增长；对 $n\ge512$ 直接数值检验不等式已不成立，矛盾。对 $n&lt;512$，用素数链</p>
+      <div class="math display" data-tex="2,3,5,7,13,23,43,83,163,317"</div>
+      <p>中相邻两项满足 $p_{i+1}&lt;2p_i$，故任意 $n&lt;512$ 都落在某个 $(p_i,p_{i+1}]$ 内或 $(p_i,2p_i)$ 内，从而 $(n,2n]$ 含素数。$\blacksquare$</p>
+      <p><strong>推论.</strong> Bertrand 立即给出素数无穷多，并且 $p_{n+1}&lt;2p_n$。</p>
+    </div></details>
+  </div>
+
+  <h3 class="ch1-subhead">动手实验 D · $\pi(x)$、$\Li(x)$ 与 $x/\log x$</h3>
+  <div class="ch1-lab" aria-labelledby="labD">
+    <h4 id="labD">悬停曲线可读取数值；$\Li(x)$ 明显优于 $x/\log x$</h4>
+    <canvas id="D-canvas" role="img" aria-label="π(x)、Li(x) 与 x/log x 三条曲线"></canvas>
+    <div id="D-tip" class="ch1-tip" hidden></div>
+    <div class="ch1-note">李特尔伍德 1914 年证明 $\Li(x)-\pi(x)$ 会无穷多次变号——尽管在图示范围内 $\Li(x)$ 始终偏大。这说明"数值上看起来成立"不能代替证明。</div>
+  </div>
+</section>
+
+<section id="ch1-6" class="ch1-section" tabindex="-1" aria-labelledby="s6">
+  <div class="ch1-head"><p class="ch1-kicker">§1.6</p><h2 id="s6">狄利克雷 1837：把欧拉乘积再推广一次</h2><p class="ch1-deck">同一套机制，搬到等差数列上；这里把能完整证明的部分全部证完。</p></div>
+  <div class="ch1-prose">
+    <p><strong>定义（Dirichlet 特征）.</strong> 固定模 $q\ge1$。函数 $\chi:\Z\to\C$ 称为模 $q$ 的特征，若 (i) $\chi(n+q)=\chi(n)$；(ii) $\chi(mn)=\chi(m)\chi(n)$；(iii) $\chi(n)=0$ 当 $(n,q)&gt;1$；(iv) $\chi(1)=1$。记 $L(s,\chi)=\sum_{n\ge1}\chi(n)n^{-s}$（$\Ree s&gt;1$ 绝对收敛）。</p>
+
+    <h3>命题 1.11（$L$ 函数的欧拉乘积）</h3>
+    <p>$\Ree s&gt;1$ 时 $L(s,\chi)=\prod_p(1-\chi(p)p^{-s})^{-1}$。</p>
+    <details class="ch1-proof" open><summary>展开完整证明</summary><div class="ch1-proof-body">
+      <p>由 (ii) 完全积性，$\chi(p^k)=\chi(p)^k$；由 (iii)，$(p,q)&gt;1$ 时 $\chi(p)=0$，对应因子为 $1$。有限乘积展开与定理 1.6 完全一样（引理 1.5 只需要唯一分解与完全积性），尾项估计用 $\abs{\chi(n)}\le1$ 得 $\sum_{n&gt;N}\abs{\chi(n)}n^{-\sigma}\le\sum_{n&gt;N}n^{-\sigma}\to0$。$\square$</p>
+    </details>
+
+    <h3>命题 1.12（特征正交关系）</h3>
+    <p>$\frac1{\varphi(q)}\sum_{\chi}\chi(n)=\begin{cases}1&amp;n\equiv1\ (\mathrm{mod}\ q)\\0&amp;\text{否则}\end{cases}$（对 $(n,q)=1$；$\chi$ 跑遍模 $q$ 的全部特征）。</p>
+    <details class="ch1-proof"><summary>展开完整证明</summary><div class="ch1-proof-body">
+      <p>特征群 $\widehat{(\Z/q\Z)^\times}$ 是有限阿贝尔群 $G$ 的对偶群，$\abs{\widehat G}=\abs{G}=\varphi(q)$。对有限阿贝尔群，若 $g\ne1$ 则存在特征 $\chi$ 使 $\chi(g)\ne1$（取 $g$ 生成的循环分量上的非平凡特征），于是 $\sum_{\chi}\chi(g)=\sum_{\chi}\chi(g)\chi_0(g)$ 对任意 $\chi_0$ 都成立，取使 $\chi_0(g)\ne1$ 者得 $(\chi_0(g)-1)\sum_\chi\chi(g)=0$，故和为 $0$；$g=1$ 时每项为 $1$，和为 $\varphi(q)$。除以 $\varphi(q)$ 即得。$\square$</p>
+    </div></details>
+
+    <h3>定理 1.13（Dirichlet, 1837）</h3>
+    <p>若 $(a,q)=1$，则 $a,a+q,a+2q,\dots$ 中有无穷多素数。</p>
+    <details class="ch1-proof" open><summary>展开：特殊情形的完整证明 + 一般情形的证明结构</summary><div class="ch1-proof-body">
+      <p><strong>特殊情形 $q=4,a=3$（完整初等证明）.</strong> 引理：奇数 $M\equiv3\pmod4$ 必有素因子 $q\equiv3\pmod4$。因为 $M$ 的素因子都是奇数（$\equiv1$ 或 $3$）；若全 $\equiv1$，其乘积也 $\equiv1$，矛盾。反设 $\equiv3\pmod4$ 的素数只有 $q_1,\dots,q_k$，令 $N=4q_1\cdots q_k-1\equiv3\pmod4$ 且 $N\ge11$。由引理，$N$ 有素因子 $q\equiv3\pmod4$；但每个 $q_i\mid 4q_1\cdots q_k$，而 $N=4q_1\cdots q_k-1$，故 $q_i\nmid N$（否则 $q_i\mid1$）。矛盾。$\blacksquare$</p>
+      <p><strong>一般情形的证明结构.</strong> 由命题 1.11 取对数，再用命题 1.12 把"落在 $a\bmod q$"筛出来：</p>
+      <div class="math display" data-tex="\sum_{p\equiv a\ (q)}\frac1{p^s}=\frac1{\varphi(q)}\sum_{\chi}\overline{\chi(a)}\sum_p\frac{\chi(p)}{p^s}=\frac1{\varphi(q)}\sum_\chi\overline{\chi(a)}\log L(s,\chi)+\bigO(1)."></div>
+      <p>当 $s\to1^+$，主特征 $\chi_0$ 的 $L(s,\chi_0)$ 与 $\zeta(s)$ 一样发散；其余 $\chi\ne\chi_0$ 需要 <strong>$L(1,\chi)\ne0$</strong> 才能保证 $\log L(s,\chi)$ 有界。Dirichlet 用类数公式（二次特征）与 Fourier 分析（复特征）证明了这一点，于是右端 $\to\infty$，从而该等差数列中素数无穷多。</p>
+      <div class="ch1-note warn"><strong>诚实的边界.</strong> $L(1,\chi)\ne0$ 的完整证明需要二次互反律 / 类数公式 / 有限群上的调和分析，超出本章预备知识；第二章之后（解析延拓与函数方程）才具备工具。本章只给出 <strong>$q=4,a=3$ 的完整证明</strong>与一般情形的精确证明结构。</div>
+    </div></details>
+  </div>
+</section>
+
+<section id="ch1-7" class="ch1-section" tabindex="-1" aria-labelledby="s7">
+  <div class="ch1-head"><p class="ch1-kicker">§1.7</p><h2 id="s7">为什么必须让 $s$ 变成复数</h2><p class="ch1-deck">到 §1.6 为止实数就够；下面三件事迫使我们把 $s$ 放进复平面。</p></div>
+  <div class="ch1-prose">
+    <p><strong>理由一：零点只在复平面里可见.</strong> 实轴上 $\zeta(\sigma)$ 对 $\sigma&gt;1$ 恒正且单调，没有零点；只有进入复平面，$\zeta$ 才有非平凡零点 $\rho$，才有"频谱"可言。第二章会看到：正是这些零点决定了 $\pi(x)$ 的波动。</p>
+    <p><strong>理由二：反演公式需要竖直围道.</strong> 要从 Dirichlet 级数 $\sum a_n n^{-s}$ 恢复系数（从而恢复 $\pi(x)$），需要 Mellin/Perron 反演</p>
+    <div class="math display" data-tex="\frac1{2\pi\iu}\int_{c-\iu\infty}^{c+\iu\infty}\frac{(x/y)^s}{s}\,\dd s=\begin{cases}1&amp;y&lt;x\\\tfrac12&amp;y=x\\0&amp;y&gt;x\end{cases},\qquad c&gt;1,"></div>
+    <p>积分路径是复平面里的竖线 $\Ree s=c$。实数轴上没有"竖线"。</p>
+    <p><strong>理由三：函数方程是复平面对称.</strong> $s\leftrightarrow1-s$ 把右半平面映到左半平面；只有承认复变量，才能把 $\Ree s&lt;0$ 的值与 $\Ree s&gt;1$ 的值联系起来，得到 $\zeta(-2n)=0$ 与 $\zeta(0)=-1/2$。</p>
+    <div class="ch1-note"><strong>给工程师的类比.</strong> $\zeta(s)$ 是素数序列在对数坐标下的拉普拉斯/Z 变换：$n^{-s}=\exp(-s\log n)$。$s=1$ 的极点决定"直流增益"（$\pi(x)\sim x/\log x$）；零点的实部决定"瞬态衰减速度"（误差项）。黎曼猜想说的正是所有瞬态都以最优速率 $\sqrt x$ 衰减。</div>
+  </div>
+</section>
+
+<section id="ch1-8" class="ch1-section" tabindex="-1" aria-labelledby="s8">
+  <div class="ch1-head"><p class="ch1-kicker">§1.8 · 形式化</p><h2 id="s8">用 Lean 4 把本章写成可检查的证明</h2><p class="ch1-deck">下面每个代码块都来自仓库 <code>lean/Riemann/</code>，且已通过 <code>lake build</code> 内核检查（mathlib v4.36.0）。</p></div>
+  <div class="ch1-prose">
+    <p>形式化把"显然"变成具名库定理。下表是本章命题与 Lean 声明的对照：</p>
+  </div>
+  <div class="ch1-table-wrapper" tabindex="0" role="region" aria-label="数学命题与 Lean 声明对照表">
+    <table class="ch1-table"><thead><tr><th>数学命题</th><th>Lean 声明</th><th>状态</th></tr></thead><tbody>
+      <tr><td>引理 A：每个 $n\ge2$ 有素因子</td><td><code>exists_prime_factor</code></td><td>本文件证明</td></tr>
+      <tr><td>$\gcd(a,b)=1$（互素）</td><td><code>Nat.Coprime a b</code>，即 <code>Nat.gcd a b = 1</code></td><td>mathlib 定义</td></tr>
+      <tr><td><strong>引理 1.1（Bézout）</strong></td><td><code>bezout_mathlib</code>（引用）/ <code>bezout_from_wellOrdering</code>（从零复刻）</td><td>本文件证明</td></tr>
+      <tr><td>Euclid：$\forall n\ \exists p\ge n$</td><td><code>euclid</code> / <code>Nat.exists_infinite_primes</code></td><td>逐战术证明</td></tr>
+      <tr><td>有限几何和</td><td><code>geom_sum_mul</code></td><td>归纳 + ring</td></tr>
+      <tr><td>单素数欧拉因子 $= \sum_{d\mid p^K}1/d$</td><td><code>euler_factor_single_prime</code></td><td>一般形式，已证</td></tr>
+      <tr><td>有限欧拉乘积（$\{2,3,5\}$）</td><td><code>example … := by native_decide</code></td><td>计算验证</td></tr>
+      <tr><td>$\sum_p1/p$ 发散</td><td><code>Nat.Primes.not_summable_one_div</code></td><td>mathlib 已证</td></tr>
+      <tr><td>Bertrand 定理</td><td><code>Nat.exists_prime_lt_and_le_two_mul</code></td><td>mathlib 已证</td></tr>
+      <tr><td>$\pi$ 单调 / 素数定理</td><td><code>Nat.monotone_primeCounting</code> / <code>Nat.isEquivalent_primeCounting</code></td><td>mathlib 已证</td></tr>
+      <tr><td>一般欧拉乘积</td><td><code>EulerProduct.eulerProduct_tprod</code></td><td>mathlib 已证（引用）</td></tr>
+      <tr><td>$\zeta$ 的欧拉乘积</td><td><code>ZetaEulerProduct : Prop</code></td><td><strong>精确陈述</strong>，未证</td></tr>
+    </tbody></table>
+  </div>
+
+  <h3 class="ch1-subhead">引理 1.1 的 Lean 证明：把网页那段逐句翻译</h3>
+  <div class="ch1-prose">
+    <p>网页 §1.1 的证明是四步：造集合 $S$ → 良序原理取最小元 $d$ → 带余除法证 $d\mid a,\ d\mid b$ → 证 $d$ 是最大公因子。Lean 里每一步都有对应物：</p>
+  </div>
+  <div class="ch1-table-wrapper" tabindex="0" role="region" aria-label="Bezout 证明步骤与 Lean 对照表">
+    <table class="ch1-table"><thead><tr><th>数学（网页 §1.1）</th><th>Lean</th><th>说明</th></tr></thead><tbody>
+      <tr><td>$S=\{au+bv&gt;0\}$ 非空</td><td><code>bezoutSet a b</code> 与 <code>hS : S.Nonempty</code></td><td>取 $u=v=1$ 得 $a+b&gt;0$；<code>omega</code> 证正性</td></tr>
+      <tr><td>良序原理取最小元 $d$</td><td><code>let d := Nat.find hS</code>；<code>Nat.find_spec</code>、<code>Nat.find_min'</code></td><td><code>Nat.find</code> 就是良序原理本身</td></tr>
+      <tr><td>带余除法 $a=qd+r\Rightarrow r=0$</td><td><code>Nat.div_add_mod c d</code>、<code>Nat.dvd_iff_mod_eq_zero</code></td><td>余数也是线性组合；若 $r&gt;0$ 就比 $d$ 更小，与最小性矛盾</td></tr>
+      <tr><td>$d$ 是最大公因子 ⇒ $d=\gcd(a,b)$</td><td><code>Nat.dvd_gcd</code>、<code>Int.natCast_dvd_natCast</code>、<code>Nat.dvd_antisymm</code></td><td>互相整除即相等</td></tr>
+    </tbody></table>
+  </div>
+  <div class="ch1-note">
+    <p><strong>版本 A（一行，最实用）.</strong> mathlib 已经把这段证明做完了：<code>Nat.gcdA a b</code> 与 <code>Nat.gcdB a b</code> 就是网页里的 $x_0,y_0$，定理 <code>Nat.gcd_eq_gcd_ab</code> 直接给出 $\gcd(a,b)=a\cdot\mathrm{gcdA}+b\cdot\mathrm{gcdB}$。于是引理 1.1 写成：</p>
+    <div class="ch1-code"><pre><code>theorem bezout_mathlib (a b : ℕ) :
+    ∃ x y : ℤ, (a : ℤ) * x + (b : ℤ) * y = (Nat.gcd a b : ℤ) := by
+  refine ⟨Nat.gcdA a b, Nat.gcdB a b, ?_⟩
+  exact (Nat.gcd_eq_gcd_ab a b).symm</code></pre></div>
+    <p><strong>版本 B（从零复刻，见下面的 Bezout.lean 标签页）.</strong> 用 <code>Nat.find</code> 实现良序原理、<code>Nat.div_add_mod</code> 实现带余除法、<code>Nat.dvd_gcd</code> 与 <code>Nat.dvd_antisymm</code> 完成「最大公因子」那一步。约 60 行，无 <code>sorry</code>，已通过内核检查。</p>
+    <p><strong>几个要适应的小地方（都不超纲）.</strong> ① 自然数 <code>ℕ</code> 与整数 <code>ℤ</code> 是不同类型，Bézout 系数可能为负，所以要用 <code>(a : ℤ)</code> 显式转换，<code>exact_mod_cast</code> 帮我们完成转换；② <code>classical</code> 打开经典逻辑，才能让「存在整数系数」这种命题可判定，从而使用 <code>Nat.find</code>；③ <code>omega</code>、<code>ring</code>、<code>linarith</code> 分别管整数不等式、代数恒等式、线性等式，就像你手算代数一样。</p>
+  </div>
+
+  <h3 class="ch1-subhead">源码（切换标签）</h3>
+  <div class="ch1-tabs" id="ch1-tabs">
+    <div class="ch1-tablist" focusgroup="tablist nomemory" aria-label="Lean 源码文件">
+      <button type="button" id="ch1-tab-c1" aria-selected="true" focusgroupstart>Chapter1.lean</button>
+      <button type="button" id="ch1-tab-eu" aria-selected="false">Euclid.lean</button>
+      <button type="button" id="ch1-tab-ep" aria-selected="false">EulerProduct.lean</button>
+      <button type="button" id="ch1-tab-bz" aria-selected="false">Bezout.lean</button>
+    </div>
+    <div class="ch1-tabpanels">
+      <div role="tabpanel" aria-labelledby="ch1-tab-c1" tabindex="0"><div class="ch1-panel-inner"><pre><code></code></pre></div></div>
+      <div role="tabpanel" aria-labelledby="ch1-tab-eu" hidden="until-found"><div class="ch1-panel-inner"><pre><code></code></pre></div></div>
+      <div role="tabpanel" aria-labelledby="ch1-tab-ep" hidden="until-found"><div class="ch1-panel-inner"><pre><code></code></pre></div></div>
+      <div role="tabpanel" aria-labelledby="ch1-tab-bz" hidden="until-found"><div class="ch1-panel-inner"><pre><code></code></pre></div></div>
+    </div>
+  </div>
+
+  <div class="ch1-note"><strong>Bézout 系数在 mathlib 中.</strong> <code>Nat.gcd</code> 给出最大公因子；<code>Nat.gcdA</code>、<code>Nat.gcdB</code> 给出整系数，定理 <code>Nat.gcd_eq_gcd_ab</code> 陈述 $\gcd(x,y)=x\cdot\mathrm{gcdA}(x,y)+y\cdot\mathrm{gcdB}(x,y)$；辗转相除由 <code>Nat.gcd_rec</code> 给出 <code>m.gcd n = (n % m).gcd m</code>，而 <code>Nat.Coprime.gcd_eq_one</code> 把互素与 $\gcd=1$ 连起来。</div>
+
+  <div class="ch1-note"><strong>关于"陈述"与"证明".</strong> <code>ZetaEulerProduct</code> 是一个 <code>Prop</code>：类型正确，但本项目<strong>没有</strong>给出它的证明项。同样地，<code>#check EulerProduct.eulerProduct_tprod</code> 只是打印 mathlib 中那条已证定理的类型。形式化的伦理是：欠着的步骤必须显式写成 <code>sorry</code>、<code>axiom</code> 或库定理，不能假装证完。</div>
+
+  <h3 class="ch1-subhead">交互 · 逐战术拆解 <code>euclid</code></h3>
+  <div class="ch1-lab" aria-labelledby="stepTitle">
+    <h4 id="stepTitle">按「下一步」观察目标状态（goal state）怎样被消掉</h4>
+    <div class="ch1-stepper">
+      <div class="ch1-step-code"><pre id="ch1-step-src"><code></code></pre></div>
+      <div class="ch1-step-state" aria-live="polite">
+        <div class="ch1-state-label">当前目标</div><pre id="ch1-step-goal"></pre>
+        <div class="ch1-state-label">上下文</div><pre id="ch1-step-ctx"></pre>
+      </div>
+    </div>
+    <div class="ch1-step-buttons">
+      <button type="button" class="ch1-btn small" id="ch1-step-prev" disabled>← 上一步</button>
+      <span id="ch1-step-count">1 / 8</span>
+      <button type="button" class="ch1-btn small primary" id="ch1-step-next">下一步 →</button>
+    </div>
+  </div>
+</section>
+
+<section id="ch1-9" class="ch1-section" tabindex="-1" aria-labelledby="s9">
+  <div class="ch1-head"><p class="ch1-kicker">§1.9</p><h2 id="s9">小结与习题</h2></div>
+  <div class="ch1-prose">
+    <div class="ch1-table-wrapper" tabindex="0" role="region" aria-label="本章结论一览">
+      <table class="ch1-table"><thead><tr><th>事实</th><th>公式</th><th>作用</th></tr></thead><tbody>
+        <tr><td>唯一分解</td><td>$n=\prod p^{a_p}$</td><td>使乘积展开合法</td></tr>
+        <tr><td>欧拉乘积</td><td>$\zeta(s)=\prod_p(1-p^{-s})^{-1}$</td><td>把素数编码进解析函数</td></tr>
+        <tr><td>对数发散</td><td>$\sum_p1/p=\infty$</td><td>第一个解析证明</td></tr>
+        <tr><td>Chebyshev</td><td>$\pi(x)\asymp x/\log x$</td><td>正确数量级</td></tr>
+        <tr><td>Bertrand</td><td>$(n,2n]$ 中有素数</td><td>初等下界</td></tr>
+        <tr><td>Dirichlet</td><td>$L(s,\chi)$、$L(1,\chi)\ne0$</td><td>等差数列里的素数</td></tr>
+      </tbody></table>
+    </div>
+    <p>下一章进入 1859 年那篇论文：先给 $\zeta(s)$ 做解析延拓，再把它整理成整函数 $\xi(s)$，让零点成为主角。</p>
+  </div>
+  <h3 class="ch1-subhead">习题（点击展开提示）</h3>
+  <section class="ch1-accordion" aria-label="第一章习题">
+    <details class="ch1-proof"><summary>习题 1 · 证明 $\sum_{p\le N}1/p\ge\log\log N-\bigO(1)$</summary><div class="ch1-proof-body"><p><strong>提示.</strong> 由 $H_N\le\prod_{p\le N}(1-1/p)^{-1}$ 取对数，用 $-\log(1-x)\le x+2x^2$ 与 $\sum 1/p^2&lt;\infty$、$H_N\ge\log N$。见 §1.4 初等版本。</p></div></details>
+    <details class="ch1-proof"><summary>习题 2 · 验证 $\prod_{p\in\{2,3\}}(1+1/p+1/p^2)=\sum_{d\mid36}1/d$</summary><div class="ch1-proof-body"><p><strong>提示.</strong> $36=2^2\cdot3^2$，其因子恰为 $2^a3^b$（$0\le a,b\le2$）；展开左边得到 9 项，用唯一分解一一对应。这正是 <code>Chapter1.lean</code> 中 <code>native_decide</code> 例子的两素数版。</p></div></details>
+    <details class="ch1-proof"><summary>习题 3 · 说明为什么 $\zeta(s)\ne0$ 在 $\Ree s&gt;1$</summary><div class="ch1-proof-body"><p><strong>提示.</strong> 每个因子 $(1-p^{-s})^{-1}\ne0$，且乘积绝对收敛；对部分积取对数，$\sum_p -\log(1-p^{-s})$ 绝对收敛，故极限 $\ne0$。见 §1.3 推论 (a)。</p></div></details>
+    <details class="ch1-proof"><summary>习题 4 · 由 Bertrand 定理推出 $p_{n+1}&lt;2p_n$</summary><div class="ch1-proof-body"><p><strong>提示.</strong> 取 $n=p_n$，Bertrand 给出素数 $p\in(p_n,2p_n]$；因 $p&gt;p_n$ 且 $p_n$ 是第 $n$ 个素数，必有 $p\ge p_{n+1}$，故 $p_{n+1}\le p\le2p_n$。</p></div></details>
+    <details class="ch1-proof"><summary>习题 5 · 为什么 $4k+1$ 的 Euclid 式证明不能照抄 $4k+3$？</summary><div class="ch1-proof-body"><p><strong>提示.</strong> 因为 $3\cdot3\equiv1\pmod4$：两个 $\equiv3$ 的素因子乘积可以 $\equiv1$，所以 $4Q+1$ 的素因子未必 $\equiv1$。正确做法用 $N=(2Q)^2+1$：$x^2+1$ 的奇素因子必 $\equiv1\pmod4$（$-1$ 是模 $q$ 的二次剩余）。</p></div></details>
+  </section>
+</section>
+
+
+</main>
+
+<footer class="ch1-footer">
+  <p>第一章独立详解版 · 配套仓库 <a href="https://github.com/tigeregit/riemann-number-theory-lecture">riemann-number-theory-lecture</a></p>
+  <p><a href="index.html">返回总讲义</a> · 公式由本地 KaTeX 渲染 · 全部 Lean 代码经内核检查</p>
+</footer>
+
+<dialog id="ch1-settings" aria-labelledby="ch1-set-title" closedby="any">
+  <h2 id="ch1-set-title">阅读设置</h2>
+  <form method="dialog">
+    <fieldset><legend>配色</legend>
+      <label><input type="radio" name="scheme" value="system" checked> 跟随系统</label>
+      <label><input type="radio" name="scheme" value="light"> 浅色</label>
+      <label><input type="radio" name="scheme" value="dark"> 深色</label>
+    </fieldset>
+    <fieldset><legend>字号</legend>
+      <label><input type="radio" name="scale" value="normal" checked> 标准</label>
+      <label><input type="radio" name="scale" value="large"> 大号</label>
+    </fieldset>
+    <menu><button value="cancel">取消</button><button value="apply" class="ch1-btn primary" autofocus>应用</button></menu>
+  </form>
+</dialog>
+
+</body>
+</html>
