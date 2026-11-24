@@ -14,6 +14,7 @@
 - 第 4 章 显式公式：逐个加入零点看阶梯函数「长出来」、可悬停读数的 π(x) 曲线
 - 第 5 章 素数定理与 RH：三角不等式实验、RH 等价命题表、部分结果与物理联系
 - 第 6 章 遗产：Riemann 面、theta 函数、Riemann–Roch、Riemann–Siegel 公式
+- **专题 · 素数为什么有无穷多个**：七个完整证明（Euclid、Euler、Goldbach/Fermat 数、Erdős 计数、Furstenberg 拓扑、Filip Saidak 构造、Euclid 变体 4k+3），每个含逐步证明、引理、常见误区与定量推论；附欧几里得机器与素数倒数和/Erdős 下界两组交互实验
 - 第 7 章 Lean 教程：7 个示例模块的真实源码标签页、逐战术 goal state 演示器
 - 自测：6 道选择题，即时反馈与评分
 
@@ -21,10 +22,10 @@
 
 | 类型 | 实现 |
 |---|---|
-| 动画 | 首屏临界带 Canvas（脉动零点、漂移粒子）、滚动揭示、数字淡入、「播放」逐个加入零点、暂停/恢复按钮 |
-| 图片 | 2 张透明背景 PNG 曲线图、临界带 SVG 示意图、Riemann 面 / theta 格点 SVG 小图、7 个实时 Canvas 图 |
-| 互动 | 5 组滑块实验、播放按钮、图表悬停读数、可折叠证明、标签页、证明步骤器、测验、三态配色设置对话框 |
-| 公式 | 本地打包的 KaTeX（JS + CSS + 20 个 woff2 字体），254 处公式，含自定义宏 Re / pit / bigO 等 |
+| 动画 | 首屏临界带 Canvas（脉动零点、漂移粒子）、滚动揭示、数字淡入、「播放」逐个加入零点、可逐步执行的欧几里得构造、暂停/恢复按钮 |
+| 图片 | 2 张透明背景 PNG 曲线图、临界带 SVG 示意图、Riemann 面 / theta 格点 SVG 小图、9 个实时 Canvas 图 |
+| 互动 | 7 组滑块实验、播放/逐步按钮、图表悬停读数、7 个可折叠完整证明（展开全部按钮）、标签页、证明步骤器、测验、三态配色设置对话框 |
+| 公式 | 本地打包的 KaTeX（JS + CSS + 20 个 woff2 字体），577 处公式，含自定义宏 Re / pit / bigO 等 |
 
 ## 目录
 
@@ -50,4 +51,4 @@
 - 原生 scroll-target-group / :target-current 滚动高亮，带 IntersectionObserver 回退与 aria-current。
 - 原生 input[type=range]、details、dialog、focusgroup 标签页（附带键盘回退）。
 - 所有持续动画都可由右上角按钮暂停，并遵守 prefers-reduced-motion。
-- 已用无头 Chrome + CDP 验证：254 处公式、7 个 Canvas、7 个 Lean 面板、全部交互，控制台 0 错误。
+- 已用无头 Chrome + CDP 验证：577 处公式、9 个 Canvas、7 个 Lean 面板、7 个完整证明折叠项、全部交互，控制台 0 错误、0 个公式解析错误。

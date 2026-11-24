@@ -498,6 +498,46 @@ dialog::backdrop { background: color-mix(in srgb, var(--bg) 65%, transparent); b
 dialog:modal { overscroll-behavior: contain; }
 dialog::backdrop { overflow: hidden; overscroll-behavior: contain; }
 
+
+/* ---------- 素数无穷多：专题 ---------- */
+.table-scroll { overflow-x: auto; margin: 18px 0 26px; }
+.table-scroll .nice-table { min-inline-size: 680px; }
+.lab-head h4 { margin: 0 0 6px; font-size: 1.06rem; font-weight: 700; }
+.machine-readout { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.machine-readout strong { font-size: .98rem; word-break: break-word; }
+.machine-steps { margin-block-start: 18px; border-block-start: 1px solid var(--border); padding-block-start: 14px; }
+.machine-steps ol { margin: 10px 0 0; padding-inline-start: 22px; color: var(--muted); font-size: 13.5px; }
+.machine-steps li { margin-block-end: 7px; }
+.machine-steps b { color: var(--text); }
+.machine-steps .fresh { color: var(--warm); font-weight: 700; }
+.dual-canvas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.dual-canvas figure { margin: 0; }
+.dual-canvas canvas {
+  display: block; inline-size: 100%; block-size: auto; aspect-ratio: 16 / 10;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+}
+.dual-canvas figcaption { margin-block-start: 8px; font-size: 12.5px; color: var(--muted); text-align: center; }
+.note-box {
+  margin: 16px 0; padding: 13px 16px; border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface-2));
+  border-inline-start: 3px solid var(--accent); font-size: 14.5px;
+}
+.note-box.warn {
+  background: color-mix(in srgb, var(--warm) 7%, var(--surface-2));
+  border-inline-start-color: var(--warm);
+}
+.note-box p { margin: 8px 0; }
+.note-box .math.display { margin: 10px 0; }
+.accordion { display: grid; gap: 12px; }
+.accordion > .subhead { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.accordion > details.proof { margin: 0; }
+.accordion > details.proof > summary { font-size: 15px; }
+.proof-body .math.display { font-size: .96em; }
+@media (max-width: 760px) {
+  .dual-canvas { grid-template-columns: 1fr; }
+  .machine-readout { grid-template-columns: 1fr; }
+}
+
 /* ---------- footer ---------- */
 .site-footer {
   border-block-start: 1px solid var(--border); padding: 34px 20px; text-align: center;

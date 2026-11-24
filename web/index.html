@@ -33,6 +33,7 @@
     <nav class="toc" aria-label="章节导航">
       <a href="#intro">导论</a>
       <a href="#euler">欧拉乘积</a>
+      <a href="#prime-proofs">素数无穷多</a>
       <a href="#paper">1859 论文</a>
       <a href="#zeros">零点</a>
       <a href="#explicit">显式公式</a>
@@ -222,6 +223,248 @@
         <li>函数方程是 $s\leftrightarrow1-s$ 的复平面对称，把右半平面与左半平面连起来。</li>
       </ul>
     </div>
+  </div>
+</section>
+
+<!-- ============ 素数无穷多：完整证明集 ============ -->
+<section id="prime-proofs" class="section" tabindex="-1" aria-labelledby="pp-title">
+  <div class="section-head">
+    <p class="kicker">专题 · 完整证明集</p>
+    <h2 id="pp-title">素数为什么有无穷多个</h2>
+    <p class="deck">同一个定理，七条完全不同的路。每一个都给出<strong>完整证明</strong>、逐步讲解、常见误区与定量推论。</p>
+  </div>
+
+  <div class="prose">
+    <p><strong>定理（素数无穷多）。</strong>素数集合 $\{2,3,5,7,11,\dots\}$ 是无限集。它有许多等价说法，彼此可以互相推导：</p>
+    <div class="math display" data-tex="\forall n\in\N\ \exists p\ge n\ (p\ \text{为素数})\quad\Longleftrightarrow\quad \pi(x)\to\infty\quad\Longleftrightarrow\quad \sum_{p}\frac1p=\infty."></div>
+    <p>本章把散落在第 1 章、附录与 <code>lean/</code> 工程里的证明集中起来，补齐所有平时被一句「显然」跳过的步骤：为什么每个整数都有素因子、为什么 $\log\zeta(\sigma)$ 的尾项一致有界、为什么 $\{-1,1\}$ 不可能是开集，等等。</p>
+  </div>
+
+  <div class="callout accent">
+    <h3>先记住一条引理（下面会反复用到）</h3>
+    <p><strong>引理 A.</strong> 每个整数 $m\ge 2$ 至少有一个素因子。<br>
+    <strong>证明.</strong> 考虑集合 $D=\{d>1: d\mid m\}$，它非空（$m\in D$）。由自然数的良序原理，$D$ 有最小元 $d$。若 $d$ 不是素数，则 $d=ab$ 且 $1&lt;a&lt;d$，于是 $a\mid d\mid m$，即 $a\in D$ 且 $a&lt;d$，与 $d$ 的最小性矛盾。故 $d$ 是素数，且 $d\mid m$。$\square$</p>
+    <p>注意这条引理只用<strong>整除与良序</strong>，完全不需要算术基本定理（唯一分解）。这也是 Euclid 证明比 Euler 乘积更「省工具」的原因。</p>
+  </div>
+
+  <h3 class="subhead">七个证明一览</h3>
+  <div class="table-scroll">
+  <table class="nice-table">
+    <thead><tr><th>#</th><th>证明</th><th>年份</th><th>核心工具</th><th>顺带得到的结论</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Euclid 反证法</td><td>约前 300</td><td>最小素因子 + 整除</td><td>$p_n\le 2^{2^{n-1}}$</td></tr>
+      <tr><td>2</td><td>Euler 解析证明</td><td>1737</td><td>欧拉乘积 + 调和级数</td><td>$\sum 1/p$ 发散，$\sim\log\log N$</td></tr>
+      <tr><td>3</td><td>Goldbach / Fermat 数</td><td>1730</td><td>两两互素的整数列</td><td>存在无穷多两两互素数</td></tr>
+      <tr><td>4</td><td>Erdős 计数证明</td><td>1938</td><td>平方自由分解 $n=ab^2$</td><td>$\pit\ge \dfrac{\log N}{2\log 2}$</td></tr>
+      <tr><td>5</td><td>Furstenberg 拓扑证明</td><td>1955</td><td>等差数列拓扑</td><td>纯存在性，很短</td></tr>
+      <tr><td>6</td><td>Filip Saidak 构造</td><td>2006</td><td>$\gcd(n,n+1)=1$</td><td>构造性，可逐步执行</td></tr>
+      <tr><td>7</td><td>Euclid 变体：$4k+3$</td><td>—</td><td>模 $4$ 的乘法封闭性</td><td>等差数列里也有无穷多素数</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="subhead">动手实验 6 · 欧几里得机器</h3>
+  <div class="lab" aria-labelledby="pp-machine-title">
+    <div class="lab-head">
+      <h4 id="pp-machine-title">取前 $k$ 个素数，看 $\prod p_i+1$ 究竟是什么</h4>
+      <p>拖动 $k$。机器会实时计算 $N=p_1p_2\cdots p_k+1$、把它分解，并标出<strong>不在原来那 $k$ 个素数里</strong>的新素因子。</p>
+    </div>
+    <div class="lab-controls">
+      <div class="control">
+        <label for="pp-k">取前 $k$ 个素数</label>
+        <input type="range" id="pp-k" min="1" max="8" step="1" value="4">
+        <output for="pp-k" id="pp-k-out">4</output>
+      </div>
+    </div>
+    <div class="lab-readout machine-readout" aria-live="polite">
+      <div><span>前 $k$ 个素数 $p_1,\dots,p_k$</span><strong id="pp-list">—</strong></div>
+      <div><span>$N=p_1\cdots p_k+1$</span><strong id="pp-N">—</strong></div>
+      <div><span>$N$ 的素因子分解</span><strong id="pp-factor">—</strong></div>
+      <div><span>新出现的素数（不在表中）</span><strong id="pp-new">—</strong></div>
+    </div>
+    <div class="machine-steps" id="pp-steps" aria-label="逐步构造新素数"></div>
+    <p class="lab-note">关键观察：$N$ 本身<strong>不必</strong>是素数。例如前 6 个素数的乘积加 1 是 $30031=59\times509$；但 $N$ 的任一素因子都必定是新的——这正是 Euclid 证明的全部内容。</p>
+  </div>
+
+  <h3 class="subhead">动手实验 7 · 素数倒数之和与 Erdős 下界</h3>
+  <div class="lab" aria-labelledby="pp-div-title">
+    <div class="lab-head">
+      <h4 id="pp-div-title">把 $N$ 拖大，看 $\sum_{p\le N}1/p$ 与 $\log\log N$ 一起慢慢增长</h4>
+      <p>左图：素数倒数和（蓝）与 $\log\log N$（橙虚线），二者只差一个有界常数。右图：真实的 $\pit$（蓝）与 Erdős 计数证明给出的下界 $\log x/(2\log 2)$（绿虚线）。</p>
+    </div>
+    <div class="lab-controls">
+      <div class="control">
+        <label for="pp-N-range">上限 $N$</label>
+        <input type="range" id="pp-N-range" min="100" max="200000" step="100" value="100000">
+        <output for="pp-N-range" id="pp-N-out">100000</output>
+      </div>
+    </div>
+    <div class="dual-canvas">
+      <figure><canvas id="pp-sum-canvas" role="img" aria-label="素数倒数部分和与 log log N 的对比曲线"></canvas><figcaption>$\sum_{p\le x}1/p$ 与 $\log\log x$</figcaption></figure>
+      <figure><canvas id="pp-pi-canvas" role="img" aria-label="π(x) 与 Erdős 下界的对比曲线"></canvas><figcaption>$\pit$ 与 $\dfrac{\log x}{2\log 2}$</figcaption></figure>
+    </div>
+    <div class="lab-readout" aria-live="polite">
+      <div><span>$\pi(N)$</span><strong id="pp-pi">—</strong></div>
+      <div><span>$\sum_{p\le N}1/p$</span><strong id="pp-sum">—</strong></div>
+      <div><span>$\log\log N$</span><strong id="pp-loglog">—</strong></div>
+      <div><span>Erdős 下界 $\log N/(2\log2)$</span><strong id="pp-bound">—</strong></div>
+    </div>
+  </div>
+
+  <section class="accordion" aria-labelledby="proofs-heading">
+    <h3 id="proofs-heading" class="subhead">七个完整证明
+      <button type="button" id="proof-toggle-all" class="btn small" aria-expanded="false">展开全部</button>
+    </h3>
+
+    <details class="proof" open>
+      <summary>证明 1 · Euclid（约前 300）—— 反证法与最小素因子</summary>
+      <div class="proof-body">
+        <p><strong>要证.</strong> 素数不是有限多个。</p>
+        <p><strong>第 1 步（反设）.</strong> 假设全部素数恰为 $p_1&lt;p_2&lt;\cdots&lt;p_k$，共 $k$ 个。这个列表包含<em>每一个</em>素数。</p>
+        <p><strong>第 2 步（造数）.</strong> 令</p>
+        <div class="math display" data-tex="N=p_1p_2\cdots p_k+1."></div>
+        <p>因为 $k\ge 1$ 且 $p_1=2$，有 $N\ge 3&gt;1$。</p>
+        <p><strong>第 3 步（取素因子）.</strong> 由引理 A，$N$ 至少有一个素因子 $q$。由反设，$q$ 必须出现在这个「完整」列表里，即 $q=p_j$ 对某个 $j$。</p>
+        <p><strong>第 4 步（整除相减）.</strong> $q=p_j$ 显然整除乘积 $p_1\cdots p_k$；同时 $q\mid N$。于是 $q$ 整除两者的差：</p>
+        <div class="math display" data-tex="q\mid N-p_1p_2\cdots p_k=1."></div>
+        <p>但素数 $q\ge 2$，不可能整除 $1$（若 $1=q\cdot t$ 且 $q\ge2,t\in\Z_{\ge1}$，则左边 $\ge2$，矛盾）。</p>
+        <p><strong>第 5 步（结论）.</strong> 矛盾说明反设不成立，故素数无穷多。$\blacksquare$</p>
+        <div class="note-box">
+          <strong>构造性读法（更贴近《几何原本》卷 IX 命题 20）.</strong>
+          不必反设「全部」素数：对<em>任意有限</em>素数集 $S$，令 $N=\prod_{p\in S}p+1$，则 $N&gt;1$ 有素因子 $q$，且任何 $p\in S$ 都整除 $\prod S$ 从而不能整除 $N$（否则 $p\mid1$）。所以 $q\notin S$。从 $S=\{2\}$ 出发反复执行，就能无限地产生新素数。
+        </div>
+        <div class="note-box warn">
+          <strong>常见误区.</strong> 不要说「$N$ 是素数」。$2\cdot3\cdot5\cdot7\cdot11\cdot13+1=30031=59\times509$ 是合数。证明只用到「$N$ 有一个素因子」，这由引理 A 保证。
+        </div>
+        <p><strong>定量推论.</strong> 设 $p_n$ 是第 $n$ 个素数，则 $p_n\le 2^{2^{n-1}}$。归纳：$p_1=2=2^{2^0}$。若对 $i\le n$ 成立，则新素数</p>
+        <div class="math display" data-tex="p_{n+1}\le p_1\cdots p_n+1\le \prod_{i=1}^{n}2^{2^{i-1}}+1=2^{2^n-1}+1\le 2^{2^n}."></div>
+        <p>（最后一步因 $2^{2^n-1}+1\le 2\cdot2^{2^n-1}=2^{2^n}$。）这个界很粗糙，但它给出一个完全初等的无穷性证明。</p>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 2 · Euler（1737）—— 欧拉乘积与调和级数</summary>
+      <div class="proof-body">
+        <p><strong>要证.</strong> $\displaystyle\sum_{p}\frac1p=\infty$；这立即蕴含素数无穷多（有限个素数的倒数之和必有限）。</p>
+        <p><strong>第 1 步（欧拉乘积）.</strong> 对 $\sigma&gt;1$，第 1 章已证（有限乘积展开 + 夹逼）：</p>
+        <div class="math display" data-tex="\zeta(\sigma)=\sum_{n\ge1}\frac1{n^\sigma}=\prod_p\frac1{1-p^{-\sigma}}."></div>
+        <p><strong>第 2 步（取对数并展开）.</strong> 用 $-\log(1-x)=\sum_{k\ge1}x^k/k$（$|x|&lt;1$）逐项展开：</p>
+        <div class="math display" data-tex="\log\zeta(\sigma)=\sum_p\sum_{k\ge1}\frac{p^{-k\sigma}}{k}=\underbrace{\sum_p\frac1{p^\sigma}}_{S(\sigma)}+\underbrace{\sum_p\sum_{k\ge2}\frac{1}{k\,p^{k\sigma}}}_{R(\sigma)}."></div>
+        <p><strong>第 3 步（尾项一致有界）.</strong> 对每个 $p\ge2$、$\sigma\ge1$：</p>
+        <div class="math display" data-tex="\sum_{k\ge2}\frac{1}{k\,p^{k\sigma}}\le\sum_{k\ge2}p^{-k}=\frac{p^{-2}}{1-p^{-1}}=\frac1{p(p-1)}\le\frac2{p^2}."></div>
+        <p>故 $R(\sigma)\le 2\sum_{n\ge2}n^{-2}&lt;2\cdot\frac{\pi^2}{6}&lt;4$，对一切 $\sigma\in(1,2]$ <em>一致有界</em>。</p>
+        <p><strong>第 4 步（左边发散）.</strong> 由积分比较 $\sum_{n\ge1}n^{-\sigma}\ge\int_1^\infty x^{-\sigma}\dd x=\frac1{\sigma-1}$，故 $\zeta(\sigma)\to\infty$、$\log\zeta(\sigma)\to\infty$ 当 $\sigma\to1^+$。</p>
+        <p><strong>第 5 步（推出 $S(\sigma)\to\infty$）.</strong> 由第 2、3 步，$S(\sigma)=\log\zeta(\sigma)-R(\sigma)\to\infty$。</p>
+        <p><strong>第 6 步（反证）.</strong> 若 $\sum_p 1/p=S&lt;\infty$，则对每个 $\sigma&gt;1$ 有 $p^{-\sigma}\le p^{-1}$，故 $S(\sigma)=\sum_p p^{-\sigma}\le S$（部分和关于 $\sigma$ 单调，令 $\sigma\downarrow1$ 由单调收敛定理取极限）。这与第 5 步矛盾。$\blacksquare$</p>
+        <div class="note-box">
+          <strong>完全初等的版本（不用 $\zeta$）.</strong>
+          每个 $n\le N$ 的素因子都 $\le N$，故
+          <div class="math display" data-tex="H_N=\sum_{n\le N}\frac1n\ \le\ \sum_{p\mid n\Rightarrow p\le N}\frac1n=\prod_{p\le N}\left(1-\frac1p\right)^{-1}."></div>
+          取对数并用 $-\log(1-x)\le x+2x^2$（$0\le x\le\frac12$，由 $\sum_{k\ge2}x^k/k\le x^2/(1-x)\le2x^2$）：
+          <div class="math display" data-tex="\log H_N\le\sum_{p\le N}\frac1p+2\sum_{p\le N}\frac1{p^2}\le\sum_{p\le N}\frac1p+2\sum_{n\ge2}\frac1{n^2}."></div>
+          又 $H_N\ge\log N$，于是 $\sum_{p\le N}1/p\ge\log\log N-C$，仍趋于无穷。
+        </div>
+        <p><strong>讲解.</strong> 这个证明第一次把「离散的素数」和「连续的级数」绑在一起：$\sum1/p$ 发散得极慢（$\sim\log\log N$），恰好对应 $\pit\sim x/\log x$。它也是第 1 章「欧拉乘积」与 <code>lean/Riemann/EulerProduct.lean</code> 里有限乘积实验的动机。</p>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 3 · Goldbach（1730）—— Fermat 数两两互素</summary>
+      <div class="proof-body">
+        <p><strong>定义.</strong> 第 $n$ 个 Fermat 数 $F_n=2^{2^n}+1$（$n\ge0$）：$3,5,17,257,65537,4294967297,\dots$</p>
+        <p><strong>第 1 步（关键恒等式）.</strong> 对 $n\ge1$，</p>
+        <div class="math display" data-tex="F_n-2=2^{2^n}-1=\left(2^{2^{n-1}}-1\right)\left(2^{2^{n-1}}+1\right)=(F_{n-1}-2)\,F_{n-1}."></div>
+        <p>由 $F_0=3=F_1-2$ 出发反复代入，归纳得</p>
+        <div class="math display" data-tex="F_n-2=F_0F_1\cdots F_{n-1}\qquad(n\ge1)."></div>
+        <p>验证：$F_1-2=3=F_0$；$F_2-2=15=3\cdot5=F_0F_1$；$F_3-2=255=3\cdot5\cdot17$。</p>
+        <p><strong>第 2 步（两两互素）.</strong> 设 $m&lt;n$，$d=\gcd(F_m,F_n)$。由第 1 步 $F_m\mid F_0\cdots F_{n-1}=F_n-2$，故 $d\mid F_n-2$；又 $d\mid F_n$，所以 $d\mid2$。但所有 $F_n$ 都是奇数（$2^{2^n}$ 为偶数），故 $d=1$。</p>
+        <p><strong>第 3 步（取素因子）.</strong> 每个 $F_n\ge3$，由引理 A 有素因子 $q_n$。若 $m\ne n$，则 $q_m\mid F_m$、$q_n\mid F_n$ 且 $\gcd(F_m,F_n)=1$，故 $q_m\ne q_n$。于是 $\{q_0,q_1,q_2,\dots\}$ 是无穷多个互不相同的素数。$\blacksquare$</p>
+        <div class="note-box warn">
+          <strong>误区.</strong> 不要假设 $F_n$ 本身是素数。费马猜错了：$F_5=4294967297=641\times6700417$。证明只用到「每个 $F_n$ 有<em>某个</em>素因子」，仍然由引理 A 保证。
+        </div>
+        <p><strong>讲解.</strong> 这个证明把 Euclid 的「一次性造数」升级为「预先造好一整列两两互素的数」，于是素数自动无穷多。它还附带一个强结论：$F_n$ 的任一素因子 $q$ 满足 $q\equiv1\pmod{2^{n+1}}$（因为 $2^{2^n}\equiv-1$，故 $2$ 模 $q$ 的阶恰为 $2^{n+1}$）。</p>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 4 · Erdős（1938）—— 平方自由分解与计数</summary>
+      <div class="proof-body">
+        <p><strong>核心想法.</strong> 把每个 $n\le N$ 唯一地写成 $n=a\cdot b^2$，其中 $a$ <em>无平方因子</em>。这样 $a$ 只有 $2^{\pi(N)}$ 种可能，$b\le\sqrt N$，从而逼出 $\pi(N)$ 的下界。</p>
+        <p><strong>第 1 步（分解的存在与唯一）.</strong> 写 $n=\prod p^{e_p}$。令 $a=\prod_{e_p\ \text{奇}}p$（无平方因子），$b=\prod p^{\lfloor e_p/2\rfloor}$。则 $n=ab^2$，且 $a$ 由 $n$ 唯一确定。</p>
+        <p><strong>第 2 步（计数上界）.</strong> $n\le N$ 时 $a$ 的素因子都 $\le N$，而 $\le N$ 的素数只有 $\pi(N)$ 个，故 $a$ 至多有 $2^{\pi(N)}$ 种（每个素数选或不选）；又 $b^2\le n\le N\Rightarrow b\le\sqrt N$，故 $b$ 至多 $\lfloor\sqrt N\rfloor$ 种。因此</p>
+        <div class="math display" data-tex="N=\bigl|\{n:1\le n\le N\}\bigr|\ \le\ 2^{\pi(N)}\sqrt N."></div>
+        <p><strong>第 3 步（解出下界）.</strong> 两边除以 $\sqrt N$ 并取对数：</p>
+        <div class="math display" data-tex="\sqrt N\le 2^{\pi(N)}\quad\Longrightarrow\quad \pi(N)\ge\frac{\log N}{2\log 2}\ \xrightarrow[N\to\infty]{}\ \infty.\ \blacksquare"></div>
+        <div class="note-box">
+          <strong>Erdős 原来的形式：$\sum 1/p$ 发散（不使用欧拉乘积）.</strong>
+          反设 $\sum_p1/p$ 收敛，则存在 $k$ 使尾部 $\sum_{p&gt;p_k}1/p&lt;\tfrac12$。称 $p\le p_k$ 为「小素数」，其余为「大素数」。设 $A(N)=\bigl|\{n\le N:\ n\ \text{只有小素因子}\}\bigr|$。
+          <br>· <em>上界</em>：$n\in A(N)$ 写成 $ab^2$ 时 $a$ 只含小素数，至多 $2^k$ 种，$b\le\sqrt N$，故 $A(N)\le 2^k\sqrt N$。
+          <br>· <em>下界</em>：含大素因子的 $n\le N$ 至多 $\sum_{p&gt;p_k}N/p\le N\sum_{p&gt;p_k}1/p&lt;N/2$，故 $A(N)&gt;N-N/2=N/2$。
+          <br>合并得 $N/2\le2^k\sqrt N$，即 $N\le 2^{2k+2}$，与 $N$ 可任意大矛盾。故 $\sum1/p$ 发散。
+        </div>
+        <p><strong>讲解.</strong> Erdős 的漂亮之处在于：他<em>不</em>用任何分析（没有 $\zeta$、没有对数），只用「平方自由部分」这一组合观察，就同时得到 $\sum1/p=\infty$ 与 $\pit\ge\log N/(2\log2)$。后者虽远弱于素数定理，但完全初等。</p>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 5 · Furstenberg（1955）—— 整数上的拓扑</summary>
+      <div class="proof-body">
+        <p><strong>第 1 步（定义一个拓扑）.</strong> 在 $\Z$ 上取所有等差数列</p>
+        <div class="math display" data-tex="S(a,b)=a+b\Z=\{a+bn:n\in\Z\},\qquad b\ge1,"></div>
+        <p>作为<strong>基</strong>。需验证它确实是基：(i) $S(0,1)=\Z$ 覆盖；(ii) 若 $x\in S(a,b)\cap S(c,d)$，则 $S(a,b)=S(x,b)$、$S(c,d)=S(x,d)$，且</p>
+        <div class="math display" data-tex="S(x,b)\cap S(x,d)=S(x,\lcm(b,d)),"></div>
+        <p>因为 $y-x$ 同时被 $b,d$ 整除当且仅当被 $\mathrm{lcm}(b,d)$ 整除。故两个基元素的交仍是基元素的并，拓扑 $\mathcal T$ 合法。</p>
+        <p><strong>第 2 步（每个非空开集都无限）.</strong> 非空开集含某个 $S(a,b)$，而 $S(a,b)$ 无限。</p>
+        <p><strong>第 3 步（$p\Z$ 是闭集）.</strong> 对素数 $p$，</p>
+        <div class="math display" data-tex="\Z\setminus p\Z=\bigcup_{r=1}^{p-1}(r+p\Z),"></div>
+        <p>右边是 $p-1$ 个基开集之并，故为开集；于是 $p\Z$ 是闭集。</p>
+        <p><strong>第 4 步（一个集合等式）.</strong> 每个整数除 $\pm1$ 外都有素因子（引理 A 用于 $|m|\ge2$），所以</p>
+        <div class="math display" data-tex="\Z\setminus\{-1,1\}=\bigcup_{p\ \text{素数}} p\Z."></div>
+        <p><strong>第 5 步（反证）.</strong> 若素数只有有限个，右边是<strong>有限个闭集之并</strong>，故闭；其补集 $\{-1,1\}$ 就是开集。但 $\{-1,1\}$ 非空且有限，与第 2 步矛盾。故素数无穷多。$\blacksquare$</p>
+        <div class="note-box">
+          <strong>讲解.</strong> 这个证明看上去「把算术问题变魔术」，其实只用了两个事实：等差数列对交封闭、以及引理 A。它<em>不</em>需要唯一分解，也不需要任何级数。更妙的是，把同样论证搬到 $\Z[i]$、$\F_q[x]$ 等环上，立刻给出「不可约元无穷多」的一般结论。
+        </div>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 6 · Filip Saidak（2006）—— $n(n+1)$ 的构造</summary>
+      <div class="proof-body">
+        <p><strong>第 1 步（相邻整数互素）.</strong> 对任意 $m&gt;1$，$\gcd(m,m+1)=1$：若 $d\mid m$ 且 $d\mid m+1$，则 $d\mid1$。</p>
+        <p><strong>第 2 步（每次至少多一个素因子）.</strong> 设 $m$ 有 $t\ge1$ 个<strong>互不相同</strong>的素因子。令</p>
+        <div class="math display" data-tex="M=m(m+1),\qquad \gcd(m,m+1)=1."></div>
+        <p>由引理 A，$m+1\ge2$ 有素因子 $q$；因 $\gcd(m,m+1)=1$，$q$ 不整除 $m$，故 $q$ 是新的。于是 $M$ 至少有 $t+1$ 个不同素因子。</p>
+        <p><strong>第 3 步（迭代）.</strong> 取 $m_1=2\cdot3=6$（已有 $2,3$ 两个素因子），递归定义 $m_{j+1}=m_j(m_j+1)$。由第 2 步归纳可知 $m_j$ 至少有 $j+1$ 个不同素因子。</p>
+        <p><strong>第 4 步（结论）.</strong> 对任意 $j$ 都存在含 $\ge j+1$ 个不同素因子的整数，故素数无穷多。$\blacksquare$</p>
+        <p>具体走几步（可与上面的「欧几里得机器」对照）：</p>
+        <div class="math display" data-tex="6\to 6\cdot7=42\to 42\cdot43=1806\to 1806\cdot1807,\quad 1807=13\cdot139."></div>
+        <p><strong>讲解.</strong> 这其实是 Euclid「乘起来加一」的近亲：$m(m+1)=m^2+m$，而 Euclid 用 $\prod p+1$；两者都靠「相邻整数互素」制造新素因子。Saidak 的版本完全构造、不反证、不用良序以外的工具，2006 年发表时因极短而广为流传。</p>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 7 · Euclid 变体 —— $4k+3$ 里也有无穷多素数（通向 Dirichlet）</summary>
+      <div class="proof-body">
+        <p><strong>要证.</strong> 形如 $4k+3$ 的素数有无穷多个。</p>
+        <p><strong>第 1 步（一个模 $4$ 的引理）.</strong> 若奇数 $M\equiv3\pmod4$，则 $M$ 至少有一个素因子 $q\equiv3\pmod4$。<br>
+        <em>证明：</em>$M$ 是奇数，故 $2\nmid M$，$M$ 的素因子全为奇数，每个 $\equiv1$ 或 $3\pmod4$。若所有素因子都 $\equiv1\pmod4$，则它们的乘积（连重数）也 $\equiv1\pmod4$（因为 $1\cdot1\equiv1$），与 $M\equiv3$ 矛盾。故必有 $\equiv3$ 的素因子。</p>
+        <p><strong>第 2 步（反设与造数）.</strong> 设 $\equiv3\pmod4$ 的素数只有 $q_1,\dots,q_k$。令</p>
+        <div class="math display" data-tex="N=4q_1q_2\cdots q_k-1=4(q_1\cdots q_k-1)+3\ \equiv\ 3\pmod 4,"></div>
+        <p>且 $N\ge4\cdot3-1=11&gt;1$（$q_1=3$）。注意 $N$ 是奇数。</p>
+        <p><strong>第 3 步（找新素数）.</strong> 由第 1 步，$N$ 有素因子 $q\equiv3\pmod4$。但每个 $q_i$ 都整除 $4q_1\cdots q_k$，而 $N=4q_1\cdots q_k-1$，故 $q_i\nmid N$（否则 $q_i\mid1$）。所以 $q\notin\{q_1,\dots,q_k\}$，与「列全了」矛盾。$\blacksquare$</p>
+        <div class="note-box">
+          <strong>为什么 $4k+1$ 不能照抄？</strong>
+          因为 $4\cdot Q+1$ 的素因子可以两个都 $\equiv3\pmod4$（而 $3\cdot3\equiv1$），所以同样的论证失败。$4k+1$ 的情形要用 $N=(2Q)^2+1$：$x^2+1$ 的奇素因子必 $\equiv1\pmod4$（因 $-1$ 是模 $q$ 的二次剩余）。这是二次互反律的初等应用。
+        </div>
+        <p><strong>讲解.</strong> 这个 Euclid 式论证把无穷性推进到<strong>等差数列</strong>。一般情形是 Dirichlet 1837 年的定理：$(a,q)=1$ 时 $a,a+q,a+2q,\dots$ 中有无穷多素数；他的证明引入了特征 $\chi$ 与 $L(s,\chi)$（见第 1 章），并用 $L(1,\chi)\ne0$ 收尾——那已经需要解析工具，超出本讲义范围。</p>
+      </div>
+    </details>
+  </section>
+
+  <div class="callout accent">
+    <h3>与 Lean 形式化的对照</h3>
+    <p><code>lean/Riemann/Euclid.lean</code> 里的 <code>Nat.exists_infinite_primes (n : ℕ) : ∃ p, n ≤ p ∧ Prime p</code> 正是<strong>构造性读法</strong>的形式化：取 $p=\operatorname{minFac}(n!+1)$，用 <code>Nat.factorial_pos</code>、<code>Nat.dvd_factorial</code>、<code>Nat.minFac_dvd</code>、<code>Nat.Prime.not_dvd_one</code> 四步把「显然」全部填满。第 7 章的<strong>逐战术步骤器</strong>把每一步的目标状态都展示出来了——<a href="#lean">去走一遍 →</a></p>
+    <p>而证明 2 的有限版本，对应 <code>lean/Riemann/EulerProduct.lean</code> 里用 <code>native_decide</code> 验证的 $\prod_{p\in\{2,3,5\}}(1+1/p)=\sum_{d\mid30}1/d$。</p>
   </div>
 </section>
 

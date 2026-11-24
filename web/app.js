@@ -132,7 +132,7 @@
     for (var i = 2; i <= n; i++) if (!a[i]) { out.push(i); for (var j = i * i; j <= n; j += i) a[j] = 1; }
     return out;
   }
-  var PRIMES = sieve(1000);
+  var PRIMES = sieve(200000);
   function zeta(s) {
     var N = 20000, sum = 0;
     for (var n = 1; n <= N; n++) sum += Math.pow(n, -s);
@@ -688,6 +688,178 @@
   });
   reduceMQ.addEventListener('change', function (e) { setMotion(!e.matches); });
   document.addEventListener('visibilitychange', function () { if (!document.hidden) startHero(); });
+
+
+  /* ---------- 专题：素数无穷多 —— 实验 6 / 7 与展开全部 ---------- */
+  function factorize(n) {
+    var f = [], x = n, d = 2;
+    while (d * d <= x) {
+      while (x % d === 0) { f.push(d); x /= d; }
+      d += (d === 2 ? 1 : 2);
+    }
+    if (x > 1) f.push(x);
+    return f;
+  }
+  function fmtFactors(f) {
+    var out = [], i = 0;
+    while (i < f.length) {
+      var p = f[i], c = 1;
+      while (i + 1 < f.length && f[i + 1] === p) { c++; i++; }
+      out.push(c > 1 ? p + '^' + c : String(p));
+      i++;
+    }
+    return out.join(' × ');
+  }
+  var ppK = $('#pp-k');
+  function ppMachine() {
+    if (!ppK) return;
+    var k = parseInt(ppK.value, 10);
+    var first = PRIMES.slice(0, k);
+    var prod = first.reduce(function (a, b) { return a * b; }, 1);
+    var N = prod + 1, f = factorize(N);
+    var distinct = f.filter(function (v, i, arr) { return arr.indexOf(v) === i; });
+    var fresh = distinct.filter(function (q) { return first.indexOf(q) < 0; });
+    $('#pp-list').textContent = first.join(', ');
+    $('#pp-N').textContent = N.toLocaleString();
+    $('#pp-factor').textContent = fmtFactors(f);
+    $('#pp-new').textContent = fresh.length ? fresh.join(', ') : '（无）';
+  }
+  if (ppK) ppK.addEventListener('input', ppMachine);
+  redrawers.push(ppMachine); ppMachine();
+
+  var stepsBox = $('#pp-steps');
+  var euclidS = [2], euclidStepN = 0, euclidHistory = [];
+  function renderEuclidSteps() {
+    if (!stepsBox) return;
+    var ol = $('#pp-step-list', stepsBox);
+    if (!ol) return;
+    ol.textContent = '';
+    euclidHistory.forEach(function (h) {
+      var li = document.createElement('li');
+      var b = document.createElement('b');
+      b.textContent = 'S = {' + h.S.join(', ') + '}';
+      var sp = document.createElement('span');
+      sp.textContent = ' → N = ' + h.N.toLocaleString() + ' = ' + fmtFactors(h.f);
+      var fr = document.createElement('span');
+      fr.className = 'fresh';
+      fr.textContent = '　新素数：' + (h.fresh.length ? h.fresh.join(', ') : '—');
+      li.appendChild(b); li.appendChild(sp); li.appendChild(fr);
+      ol.appendChild(li);
+    });
+  }
+  if (stepsBox) {
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;align-items:center';
+    var stepBtn = document.createElement('button');
+    stepBtn.type = 'button'; stepBtn.className = 'btn small'; stepBtn.id = 'pp-step-btn';
+    stepBtn.textContent = '▶ 生成下一个素数';
+    var resetBtn = document.createElement('button');
+    resetBtn.type = 'button'; resetBtn.className = 'btn small';
+    resetBtn.textContent = '重置';
+    wrap.appendChild(stepBtn); wrap.appendChild(resetBtn);
+    var ol = document.createElement('ol'); ol.id = 'pp-step-list';
+    stepsBox.appendChild(wrap); stepsBox.appendChild(ol);
+    stepBtn.addEventListener('click', function () {
+      if (euclidStepN >= 6) return;
+      var prod = euclidS.reduce(function (a, b) { return a * b; }, 1);
+      var N = prod + 1, f = factorize(N);
+      var distinct = f.filter(function (v, i, arr) { return arr.indexOf(v) === i; });
+      var fresh = distinct.filter(function (q) { return euclidS.indexOf(q) < 0; });
+      euclidHistory.push({ S: euclidS.slice(), N: N, f: f, fresh: fresh });
+      if (fresh.length) euclidS.push(Math.min.apply(null, fresh));
+      euclidStepN++;
+      stepBtn.disabled = euclidStepN >= 6;
+      stepBtn.textContent = euclidStepN >= 6 ? '已生成 6 步' : '▶ 生成下一个素数';
+      renderEuclidSteps();
+    });
+    resetBtn.addEventListener('click', function () {
+      euclidS = [2]; euclidStepN = 0; euclidHistory = [];
+      stepBtn.disabled = false; stepBtn.textContent = '▶ 生成下一个素数';
+      renderEuclidSteps();
+    });
+    renderEuclidSteps();
+  }
+
+  var recip = [], accR = 0;
+  PRIMES.forEach(function (p) { accR += 1 / p; recip.push([p, accR]); });
+  function sumRecip(N) {
+    var lo = 0, hi = recip.length - 1, best = 0;
+    while (lo <= hi) {
+      var m = (lo + hi) >> 1;
+      if (recip[m][0] <= N) { best = recip[m][1]; lo = m + 1; } else hi = m - 1;
+    }
+    return best;
+  }
+  function piAt(N) {
+    var lo = 0, hi = PRIMES.length - 1, best = 0;
+    while (lo <= hi) {
+      var m = (lo + hi) >> 1;
+      if (PRIMES[m] <= N) { best = m + 1; lo = m + 1; } else hi = m - 1;
+    }
+    return best;
+  }
+  var ppN = $('#pp-N-range');
+  function ppDivergence() {
+    if (!ppN) return;
+    var N = parseInt(ppN.value, 10);
+    var lx = Math.log, l10 = Math.LN10;
+    var xmin = 1, xmax = Math.log(N) / l10;
+    var sN = sumRecip(N), llN = lx(lx(N));
+    var s1 = [], s2 = [], i, t, x;
+    for (i = 0; i <= 260; i++) {
+      t = xmin + (xmax - xmin) * i / 260; x = Math.pow(10, t);
+      s1.push([t, sumRecip(x)]);
+      s2.push([t, lx(lx(Math.max(x, Math.E + 0.01)))]);
+    }
+    var ymax = Math.max(sN, llN) + 0.35;
+    var xt1 = [[1, '10'], [2, '100'], [3, '1k'], [4, '10k'], [5, '100k']].filter(function (q) { return q[0] <= xmax + 1e-9; });
+    drawChart($('#pp-sum-canvas'), {
+      xmin: xmin, xmax: xmax, ymin: 0, ymax: ymax,
+      xticks: xt1,
+      yticks: ticks(0, ymax, Math.max(.5, ymax / 4), function (v) { return v.toFixed(1); }),
+      series: [{ pts: s1, color: P().accent, width: 2.6 }, { pts: s2, color: P().amber, width: 2, dash: [6, 4] }]
+    });
+    var pN = piAt(N), x0 = Math.log(2) / l10, ymax2 = Math.log(pN) / l10 + 0.2;
+    var p1 = [], p2 = [];
+    for (i = 0; i <= 260; i++) {
+      t = x0 + (xmax - x0) * i / 260; x = Math.pow(10, t);
+      var pv = piAt(x), bd = lx(x) / (2 * lx(2));
+      p1.push([t, pv > 0 ? Math.log(pv) / l10 : 0]);
+      p2.push([t, Math.log(Math.max(bd, 1)) / l10]);
+    }
+    var yt2 = [[0, '1'], [1, '10'], [2, '100'], [3, '1k'], [4, '10k']].filter(function (q) { return q[0] <= ymax2 + 1e-9; });
+    var xt2 = [[0.3, '2'], [1, '10'], [2, '100'], [3, '1k'], [4, '10k'], [5, '100k']].filter(function (q) { return q[0] >= x0 - 1e-9 && q[0] <= xmax + 1e-9; });
+    drawChart($('#pp-pi-canvas'), {
+      xmin: x0, xmax: xmax, ymin: 0, ymax: ymax2,
+      xticks: xt2, yticks: yt2,
+      series: [{ pts: p1, color: P().accent, width: 2.6 }, { pts: p2, color: P().green, width: 2, dash: [6, 4] }]
+    });
+    $('#pp-pi').textContent = pN.toLocaleString();
+    $('#pp-sum').textContent = sN.toFixed(4);
+    $('#pp-loglog').textContent = llN.toFixed(4);
+    $('#pp-bound').textContent = (lx(N) / (2 * lx(2))).toFixed(2);
+  }
+  if (ppN) ppN.addEventListener('input', ppDivergence);
+  redrawers.push(ppDivergence); ppDivergence();
+
+  var accEl = $('.accordion'), toggleAll = $('#proof-toggle-all');
+  function syncToggleAll() {
+    if (!accEl || !toggleAll) return;
+    var items = $$('details', accEl);
+    var allOpen = items.length > 0 && items.every(function (d) { return d.open; });
+    toggleAll.setAttribute('aria-expanded', String(allOpen));
+    toggleAll.textContent = allOpen ? '折叠全部' : '展开全部';
+  }
+  if (accEl && toggleAll) {
+    toggleAll.addEventListener('click', function () {
+      var expand = toggleAll.getAttribute('aria-expanded') !== 'true';
+      $$('details', accEl).forEach(function (d) { d.open = expand; });
+      syncToggleAll();
+    });
+    // toggle does not bubble; capture on the group so item changes stay in sync
+    accEl.addEventListener('toggle', syncToggleAll, true);
+    syncToggleAll();
+  }
 
   renderAllMath();
   autoRender(document.body);
