@@ -110,7 +110,13 @@
       <p>由良序原理，$S$ 有最小元，记作 $d=ax_0+by_0$（$x_0,y_0$ 是取到最小值的那组系数），且 $d&gt;0$。下面两步说明这个 $d$ 恰好就是 $\gcd(a,b)$。</p>
       <p><em>第一步：$d\mid a$ 与 $d\mid b$。</em> 对 $a$ 作带余除法：$a=qd+r$，$0\le r&lt;d$。则
       $r=a-qd=a-q(ax_0+by_0)=a(1-qx_0)+b(-qy_0)$ 是 $a,b$ 的整系数线性组合。若 $r&gt;0$，则 $r\in S$ 且 $r&lt;d$，与 $d$ 的最小性矛盾；故 $r=0$，即 $d\mid a$。同理 $d\mid b$。</p>
-      <p><em>第二步：$d$ 是<strong>最大</strong>公因子。</em> 若 $c\mid a$ 且 $c\mid b$，则 $c\mid ax_0+by_0=d$，故 $c\le d$（取正整数 $c$）。于是 $d=\gcd(a,b)$。$\square$</p>
+      <p><em>第二步：$d$ 是<strong>最大</strong>公因子。</em> 任取一个<strong>正的</strong>公因子 $c&gt;0$，即 $c\mid a$ 且 $c\mid b$。按「整除」的定义，可以写成 $a=cm$、$b=cn$（$m,n$ 是整数）。把这两个式子代入 $d=ax_0+by_0$：</p>
+      <div class="math display" data-tex="d=ax_0+by_0=(cm)x_0+(cn)y_0=c\,(mx_0+ny_0)."></div>
+      <p>括号里的 $mx_0+ny_0$ 是整数，所以 $c\mid d$。这一步其实就是<strong>分配律</strong>：能被 $c$ 整除的数，乘上整数再相加，结果仍能被 $c$ 整除 —— 和你在线代里见过的「一组向量生成的线性组合对加法封闭」是同一种想法，不需要任何新工具。</p>
+      <p>接着由 $c\mid d$ 且 $c&gt;0,\ d&gt;0$：设 $d=c\cdot k$，商 $k$ 必是<strong>正</strong>整数（$k\ge1$，因为 $d&gt;0$），于是 $d=c\cdot k\ge c$，即 $c\le d$。这里必须把 $c$ 取成<strong>正的</strong>公因子：负的因子当然也整除，但没法比大小；而 $\gcd$ 按定义就是「最大的<strong>正</strong>公因子」，所以只考虑 $c&gt;0$ 就够了。</p>
+      <p>于是 $d$ 满足 $\gcd$ 定义的两条：(i) 第一步已证 $d\mid a$、$d\mid b$，且 $d&gt;0$，所以 $d$ 本身就是一个正公因子；(ii) 刚才证了任何正公因子 $c\le d$，所以 $d$ 是<strong>最大</strong>的那个。故 $d=\gcd(a,b)$。$\square$</p>
+      <div class="ch1-note"><p><strong>为什么「最小的线性组合」反而是「最大的公因子」？</strong> 这是整个证明最反直觉的一点：$d$ 是 $S$（所有<em>正</em>线性组合）里<strong>最小</strong>的；但任何公因子都必须整除<strong>每一个</strong>线性组合，特别要整除 $d$，于是公因子全都 $\le d$。所以「能凑出的最小正距离」恰好就是「能同时量尽 $a,b$ 的最大尺子」。</p>
+      <p>用 $a=12,\ b=18$ 走一遍：$S=\{12u+18v&gt;0\}$，其中每个数都是 $6(2u+3v)$；取 $u=-1,\ v=1$ 得 $12(-1)+18(1)=6$，这就是最小元 $d=6$。而 $12,18$ 的正公因子是 $1,2,3,6$，全都 $\le6$，正是 $\gcd(12,18)=6$。</p></div>
     </div></details>
 
     <h3>引理 1.2（欧几里得引理）</h3>
