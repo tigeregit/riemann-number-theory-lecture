@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>try{var s=localStorage.getItem('riemann-color-scheme');document.querySelector('meta[name="color-scheme"]').content=s||'light dark';}catch(e){}</script>
+<meta name="description" content="黎曼在数论方面的研究：从欧拉乘积到黎曼猜想的交互式讲义，附 Lean 4 形式化教程">
+<title>黎曼在数论方面的研究 · 交互式讲义</title>
+<link rel="stylesheet" href="vendor/katex.min.css">
+<link rel="stylesheet" href="styles.css">
+<script src="vendor/katex.min.js" defer></script>
+<script src="vendor/auto-render.min.js" defer></script>
+<script src="data.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到正文</a>
+<div id="scroll-progress" aria-hidden="true"></div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a class="brand" href="#hero" aria-label="回到顶部">
+      <svg viewBox="0 0 40 40" aria-hidden="true" class="brand-mark">
+        <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M8 20 H32 M20 5 V35" stroke="currentColor" stroke-width="1" opacity=".45"/>
+        <path d="M20 5 V35" stroke="var(--accent)" stroke-width="2.5" stroke-dasharray="3 3"/>
+        <circle cx="20" cy="14" r="2.2" fill="var(--warm)"/>
+        <circle cx="20" cy="26" r="2.2" fill="var(--warm)"/>
+      </svg>
+      <span>黎曼与素数</span>
+    </a>
+    <nav class="toc" aria-label="章节导航">
+      <a href="#intro">导论</a>
+      <a href="#euler">欧拉乘积</a>
+      <a href="#prime-proofs">素数无穷多</a>
+      <a href="#paper">1859 论文</a>
+      <a href="#zeros">零点</a>
+      <a href="#explicit">显式公式</a>
+      <a href="#pnt">素数定理与 RH</a>
+      <a href="#legacy">遗产</a>
+      <a href="#lean">Lean 教程</a>
+      <a href="#quiz">自测</a>
+    </nav>
+    <div class="header-actions">
+      <button type="button" id="motion-toggle" class="icon-btn" aria-pressed="false" aria-label="暂停所有动画" title="暂停动画">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </button>
+      <button type="button" id="settings-open" class="icon-btn" aria-label="打开阅读设置" title="阅读设置">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============ HERO ============ -->
+<section id="hero" class="hero" tabindex="-1" aria-labelledby="hero-title">
+  <div class="hero-copy">
+    <p class="eyebrow">交互式讲义 · 面向理工科本科生</p>
+    <h1 id="hero-title">黎曼在数论方面的研究</h1>
+    <p class="hero-sub">从欧拉乘积到黎曼猜想 —— 以及怎样用 <strong>Lean 4</strong> 把这些命题写成机器可检查的形式</p>
+    <p class="hero-lead">1859 年，黎曼在一篇约六页的论文里做了一件当时几乎没人看得懂的事：把「数素数」这个离散的算术问题，变成一个关于复变函数零点的问题。本讲义沿着这条路走一遍，并让你可以亲手拖动、播放、验证每一步。</p>
+    <div class="hero-cta">
+      <a class="btn primary" href="#intro">开始阅读 <span aria-hidden="true">↓</span></a>
+      <a class="btn ghost" href="#explicit">直接看显式公式</a>
+    </div>
+    <div class="hero-stats" aria-label="关键数字">
+      <div><strong data-count="1859">1859</strong><span>论文发表</span></div>
+      <div><strong data-count="6">6</strong><span>页手稿</span></div>
+      <div><strong data-count="1896">1896</strong><span>素数定理得证</span></div>
+      <div><strong data-count="1">1</strong><span>百万美元悬赏</span></div>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <canvas id="hero-canvas" role="img" aria-label="复平面临界带动画：红色临界线与成对的零点"></canvas>
+    <div class="hero-caption">复平面中的临界带 $0&lt;\Re s&lt;1$（示意）。红点是零点，虚线是临界线 $\Re s=\tfrac12$。</div>
+    <div class="hero-legend">
+      <span><i class="dot red"></i>非平凡零点</span>
+      <span><i class="dot gray"></i>平凡零点 $-2,-4,\dots$</span>
+      <span><i class="line blue"></i>临界带</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 导论 ============ -->
+<section id="intro" class="section" tabindex="-1" aria-labelledby="intro-title">
+  <div class="section-head">
+    <p class="kicker">第 0 章 · 地图</p>
+    <h2 id="intro-title">两条主线：解析延拓，与显式公式</h2>
+    <p class="deck">把模糊的东西放到精确的语言里，它才会真正被理解。</p>
+  </div>
+
+  <div class="prose">
+    <p>这份讲义只讲<strong>一条主线</strong>。它不打算替代数论教材，而是把黎曼 1859 年论文的逻辑链拆开，让具备微积分、线性代数与复变函数初步的读者也能跟上。凡是超出这个范围的技术细节，都放进「展开证明」折叠块里，第一遍可以跳过。</p>
+    <p>核心思想可以压缩成一句话：<em>素数的信息被编码进 $\zeta(s)$ 的解析性质，零点就是解码的钥匙</em>。下面这张流程图是整份讲义的骨架，点击任意一步可以跳到对应章节。</p>
+  </div>
+
+  <div class="flow" role="list" aria-label="讲义逻辑链">
+    <a class="flow-step" href="#euler" role="listitem">
+      <span class="flow-num">01</span><strong>欧拉乘积</strong>
+      <span class="math" data-tex="\zeta(s)=\prod_p(1-p^{-s})^{-1}"></span>
+      <small>把素数装进一个函数</small>
+    </a>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <a class="flow-step" href="#paper" role="listitem">
+      <span class="flow-num">02</span><strong>解析延拓</strong>
+      <span class="math" data-tex="\Lambda(s)=\Lambda(1-s)"></span>
+      <small>把 $s$ 放到整个复平面</small>
+    </a>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <a class="flow-step" href="#zeros" role="listitem">
+      <span class="flow-num">03</span><strong>零点 $\rho$</strong>
+      <span class="math" data-tex="\xi(s)=\tfrac12\prod_\rho(1-s/\rho)"></span>
+      <small>$\xi$ 是整函数，零点是根</small>
+    </a>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <a class="flow-step" href="#explicit" role="listitem">
+      <span class="flow-num">04</span><strong>显式公式</strong>
+      <span class="math" data-tex="J(x)=\operatorname{Li}(x)-\sum_\rho\operatorname{Li}(x^\rho)+\cdots"></span>
+      <small>零点「谱分解」出素数</small>
+    </a>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <a class="flow-step" href="#pnt" role="listitem">
+      <span class="flow-num">05</span><strong>素数定理 / RH</strong>
+      <span class="math" data-tex="\pi(x)\sim\frac{x}{\log x}"></span>
+      <small>误差项由零点位置决定</small>
+    </a>
+  </div>
+
+  <div class="callout accent">
+    <h3>给工程师的类比</h3>
+    <p>把素数计数看成信号，$\zeta(s)$ 就是它的「Z 变换」（$n^{-s}=\ee^{-s\log n}$，即对数坐标下的拉普拉斯变换）。$s=1$ 处的极点决定直流增益（$\pit\sim x/\log x$ 的主项）；零点的实部决定瞬态衰减速度（误差项的阶）。黎曼猜想说的正是：所有瞬态都以最优速率 $\sqrt x$ 衰减。</p>
+  </div>
+
+  <h3 class="subhead">历史时间线 <span class="hint">点击条目展开</span></h3>
+  <ol class="timeline" id="timeline">
+    <li><button type="button" aria-expanded="false"><time>约前 300</time><strong>欧几里得</strong><span>素数有无穷多个</span></button><div class="timeline-body" hidden>《几何原本》卷 IX 命题 20：给定任意有限素数集合，$p_1p_2\cdots p_n+1$ 必有新的素因子。</div></li>
+    <li><button type="button" aria-expanded="false"><time>1737</time><strong>欧拉</strong><span>乘积公式，$\sum 1/p$ 发散</span></button><div class="timeline-body" hidden>欧拉第一次用级数与乘积研究素数，解析方法由此进入数论。</div></li>
+    <li><button type="button" aria-expanded="false"><time>1792 / 1798</time><strong>高斯、勒让德</strong><span>猜测 $\pit\sim x/\log x$</span></button><div class="timeline-body" hidden>高斯 15 岁左右根据素数表猜测 $\Li(x)$；勒让德给出经验公式 $x/(A\log x+B)$。</div></li>
+    <li><button type="button" aria-expanded="false"><time>1837</time><strong>狄利克雷</strong><span>特征与 $L$ 函数</span></button><div class="timeline-body" hidden>证明等差数列 $(a,q)=1$ 中有无穷多素数；这是「用 $L$ 函数解决素数问题」的第一次成功。</div></li>
+    <li><button type="button" aria-expanded="false"><time>1850</time><strong>切比雪夫</strong><span>$\psi(x)\asymp x$，伯特兰定理</span></button><div class="timeline-body" hidden>用中心二项式系数的素因子分解给出 $\pit$ 的正确数量级，并证明 $n$ 与 $2n$ 之间必有素数。</div></li>
+    <li class="milestone"><button type="button" aria-expanded="false"><time>1859</time><strong>黎曼</strong><span>《论小于给定值的素数的个数》</span></button><div class="timeline-body" hidden>当选柏林科学院通讯院士时宣读，正文约六页。解析延拓、函数方程、$\xi$ 函数、显式公式、黎曼猜想，全在这一篇里。</div></li>
+    <li><button type="button" aria-expanded="false"><time>1896</time><strong>阿达马、德·拉·瓦莱·普桑</strong><span>素数定理</span></button><div class="timeline-body" hidden>关键：$\zeta(s)$ 在 $\Ree s=1$ 上不为零。两人独立证明。</div></li>
+    <li><button type="button" aria-expanded="false"><time>1900 / 2000</time><strong>希尔伯特 / 克雷</strong><span>第 8 问题 / 千禧年奖</span></button><div class="timeline-body" hidden>黎曼猜想被列入希尔伯特第 8 问题；2000 年克雷数学所悬赏一百万美元。</div></li>
+    <li><button type="button" aria-expanded="false"><time>1932</time><strong>西格尔</strong><span>整理遗稿</span></button><div class="timeline-body" hidden>发现黎曼其实做了大量数值计算，并掌握 Riemann–Siegel 公式的渐近展开。</div></li>
+    <li><button type="button" aria-expanded="false"><time>1973</time><strong>蒙哥马利</strong><span>零点对关联 ↔ GUE</span></button><div class="timeline-body" hidden>零点间距的统计与随机矩阵高斯酉系综吻合，引出 Hilbert–Pólya 与量子混沌猜想。</div></li>
+    <li><button type="button" aria-expanded="false"><time>2021</time><strong>Platt–Trudgian</strong><span>严格验证到 $3\times10^{12}$</span></button><div class="timeline-body" hidden>用区间算术与 Turing 方法验证约 $1.2\times10^{13}$ 个零点都在临界线上。</div></li>
+  </ol>
+
+  <div class="figure-card">
+    <figure>
+      <img src="assets/prime-density.png" alt="π(x) 与对数积分 Li(x)、x/log x 的比较曲线" loading="lazy">
+      <figcaption>图 0.1　蓝线是真实的 $\pit$，红色虚线是 $\Li(x)$，绿色点线是 $x/\log x$。$\Li(x)$ 明显更好，但李特尔伍德 1914 年证明了 $\Li(x)-\pit$ 会无穷多次变号。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ 欧拉 ============ -->
+<section id="euler" class="section" tabindex="-1" aria-labelledby="euler-title">
+  <div class="section-head">
+    <p class="kicker">第 1 章 · 欧拉</p>
+    <h2 id="euler-title">把素数装进一个函数</h2>
+    <p class="deck">一个关于所有整数的级数，等于一个关于所有素数的乘积。</p>
+  </div>
+
+  <div class="prose">
+    <p>1737 年欧拉发现：当 $\sigma=\Ree s&gt;1$ 时，级数 $\zeta(s)=\sum_{n\ge1}n^{-s}$ 绝对收敛，并且</p>
+    <div class="math display" data-tex="\zeta(s)=\sum_{n=1}^{\infty}\frac{1}{n^{s}}=\prod_{p}\frac{1}{1-p^{-s}}=\prod_p\left(1+p^{-s}+p^{-2s}+\cdots\right)."></div>
+    <p>左边完全不提素数，右边只提素数。证明的三步是：对有限素数集 $P$，把有限个几何级数相乘，每一项对应一组指数 $(k_p)$，由<strong>算术基本定理</strong>，$n=\prod_{p\in P}p^{k_p}$ 与指数组一一对应；再注意所有 $n\le N$ 的素因子都 $\le N$，于是有限乘积被夹在 $\sum_{n\le N}n^{-\sigma}$ 与 $\zeta(\sigma)$ 之间；最后令 $N\to\infty$。</p>
+
+    <details class="proof">
+      <summary>展开：为什么 $\sum_p 1/p$ 发散</summary>
+      <div class="proof-body">
+        <p>对 $\log\zeta(\sigma)=\sum_p\sum_{k\ge1}p^{-k\sigma}/k$ 取 $\sigma\to1^+$。二次以上的项 $\sum_p\sum_{k\ge2}p^{-k\sigma}/k\le\sum_p 2/p^2&lt;\infty$ 一致有界；而 $\zeta(\sigma)\to\infty$（调和级数发散）。故 $\sum_p p^{-\sigma}\to\infty$。若 $\sum 1/p$ 收敛，则它应有有限极限，矛盾。</p>
+        <div class="math display" data-tex="\sum_{p\le N}\frac1p\ \ge\ \log\log N-\bigO(1)\ \longrightarrow\ \infty."></div>
+        <p>这已经暗示 $\pit$ 大约是 $x/\log x$：若随机整数 $n$ 为素数的概率约 $1/\log n$，则 $\sum_{n\le x}1/\log n\sim x/\log x$。</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="lab" aria-labelledby="euler-lab-title">
+    <div class="lab-head">
+      <h3 id="euler-lab-title">动手实验 1 · 有限欧拉乘积的收敛</h3>
+      <p>拖动 $s$ 与素数个数 $N$，观察 $\prod_{p\le p_N}(1-p^{-s})^{-1}$ 怎样从下方逼近 $\zeta(s)$。</p>
+    </div>
+    <div class="lab-controls">
+      <div class="control">
+        <label for="euler-s">实部 $s$（取值范围 1.2 – 4.0）</label>
+        <input type="range" id="euler-s" min="1.2" max="4" step="0.05" value="2">
+        <output for="euler-s" id="euler-s-out">2.00</output>
+      </div>
+      <div class="control">
+        <label for="euler-n">用到的素数个数 $N$</label>
+        <input type="range" id="euler-n" min="1" max="120" step="1" value="10">
+        <output for="euler-n" id="euler-n-out">10</output>
+      </div>
+    </div>
+    <div class="lab-figure">
+      <canvas id="euler-canvas" role="img" aria-label="有限欧拉乘积随素数个数增加而收敛到 ζ(s) 的曲线"></canvas>
+    </div>
+    <div class="lab-readout" aria-live="polite">
+      <div><span>$\zeta(s)$</span><strong id="euler-zeta">1.644934</strong></div>
+      <div><span>部分乘积 $P_N(s)$</span><strong id="euler-partial">—</strong></div>
+      <div><span>相对误差</span><strong id="euler-err">—</strong></div>
+    </div>
+    <p class="lab-note">注意：$s$ 越靠近 $1$，收敛越慢——因为 $\prod_p(1-p^{-1})^{-1}$ 正好对应调和级数的发散。这正是「$s=1$ 是极点」的算术根源。</p>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>狄利克雷的推广（1837）</h3>
+      <p>黎曼在柏林的老师狄利克雷引入特征 $\chi$ 与</p>
+      <div class="math display" data-tex="L(s,\chi)=\sum_{n\ge1}\frac{\chi(n)}{n^s}=\prod_p\frac{1}{1-\chi(p)p^{-s}}."></div>
+      <p>由 $L(1,\chi)\ne0$ 推出每个 $(a,q)=1$ 的等差数列中有无穷多素数。这是「把素数问题变成 $L$ 函数解析问题」的模板，$\zeta$ 只是其中 $\chi=1$ 的一个。</p>
+    </div>
+    <div class="card">
+      <h3>为什么必须引入复数 $s$</h3>
+      <ul>
+        <li>实轴上 $\zeta(\sigma)$ 对 $\sigma&gt;1$ 恒正、没有零点；只有进入复平面才有「频谱」。</li>
+        <li>从 Dirichlet 级数恢复系数需要 Mellin / Perron 反演，路径是竖线 $\Ree s=c$。</li>
+        <li>函数方程是 $s\leftrightarrow1-s$ 的复平面对称，把右半平面与左半平面连起来。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+  <div class="callout accent">
+    <h3>第一章独立详解版</h3>
+    <p>上面只是第一章的速览。<a href="chapter1.html"><strong>点这里打开独立的第一章详解</strong></a>：Bézout 引理、算术基本定理、欧拉乘积的逐步证明与尾项估计、Chebyshev 与 Bertrand 定理的完整推导、Dirichlet 特征，以及全部对应的 Lean 4 形式化证明。</p>
+  </div>
+
+<!-- ============ 素数无穷多：完整证明集 ============ -->
+<section id="prime-proofs" class="section" tabindex="-1" aria-labelledby="pp-title">
+  <div class="section-head">
+    <p class="kicker">专题 · 完整证明集</p>
+    <h2 id="pp-title">素数为什么有无穷多个</h2>
+    <p class="deck">同一个定理，七条完全不同的路。每一个都给出<strong>完整证明</strong>、逐步讲解、常见误区与定量推论。</p>
+  </div>
+
+  <div class="prose">
+    <p><strong>定理（素数无穷多）。</strong>素数集合 $\{2,3,5,7,11,\dots\}$ 是无限集。它有许多等价说法，彼此可以互相推导：</p>
+    <div class="math display" data-tex="\forall n\in\N\ \exists p\ge n\ (p\ \text{为素数})\quad\Longleftrightarrow\quad \pi(x)\to\infty\quad\Longleftrightarrow\quad \sum_{p}\frac1p=\infty."></div>
+    <p>本章把散落在第 1 章、附录与 <code>lean/</code> 工程里的证明集中起来，补齐所有平时被一句「显然」跳过的步骤：为什么每个整数都有素因子、为什么 $\log\zeta(\sigma)$ 的尾项一致有界、为什么 $\{-1,1\}$ 不可能是开集，等等。</p>
+  </div>
+
+  <div class="callout accent">
+    <h3>先记住一条引理（下面会反复用到）</h3>
+    <p><strong>引理 A.</strong> 每个整数 $m\ge 2$ 至少有一个素因子。<br>
+    <strong>证明.</strong> 考虑集合 $D=\{d>1: d\mid m\}$，它非空（$m\in D$）。由自然数的良序原理，$D$ 有最小元 $d$。若 $d$ 不是素数，则 $d=ab$ 且 $1&lt;a&lt;d$，于是 $a\mid d\mid m$，即 $a\in D$ 且 $a&lt;d$，与 $d$ 的最小性矛盾。故 $d$ 是素数，且 $d\mid m$。$\square$</p>
+    <p>注意这条引理只用<strong>整除与良序</strong>，完全不需要算术基本定理（唯一分解）。这也是 Euclid 证明比 Euler 乘积更「省工具」的原因。</p>
+    <p><strong>良序原理（Well-Ordering Principle）.</strong> 正整数集 $\{1,2,3,\dots\}$ 的<strong>任意非空子集都有最小元</strong> —— 就是高数里数学归纳法的另一种说法：从 $1$ 往上数，第一次命中的就是最小元；等价地，正整数不能无穷地严格变小。注意必须是「正整数」：全体整数、正有理数都没有最小元。$D$ 是正整数集的非空子集，所以能取最小元 $d$。</p>
+  </div>
+
+  <div class="callout accent">
+    <h3>阅读提示（只假设高数 / 线代 / 概率统计）</h3>
+    <p>下面七个证明里，<strong>1、2、3、6、7 号</strong>只用整除、归纳法与级数（高数），建议按顺序读；<strong>4 号 Erdős</strong> 用到一点组合计数，也不超纲。<strong>5 号 Furstenberg 用到了点集拓扑</strong>（开集、闭集），超出本科公共课范围，标为<strong>选读，可整段跳过</strong>，不影响其余六个证明，也不影响主线。文中凡出现超纲名词都给了通俗解释或「可跳过」标注。</p>
+  </div>
+
+  <h3 class="subhead">七个证明一览</h3>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="七个证明对照表">
+  <table class="nice-table">
+    <thead><tr><th>#</th><th>证明</th><th>年份</th><th>核心工具</th><th>顺带得到的结论</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Euclid 反证法</td><td>约前 300</td><td>最小素因子 + 整除</td><td>$p_n\le 2^{2^{n-1}}$</td></tr>
+      <tr><td>2</td><td>Euler 解析证明</td><td>1737</td><td>欧拉乘积 + 调和级数</td><td>$\sum 1/p$ 发散，$\sim\log\log N$</td></tr>
+      <tr><td>3</td><td>Goldbach / Fermat 数</td><td>1730</td><td>两两互素的整数列</td><td>存在无穷多两两互素数</td></tr>
+      <tr><td>4</td><td>Erdős 计数证明</td><td>1938</td><td>平方自由分解 $n=ab^2$</td><td>$\pit\ge \dfrac{\log N}{2\log 2}$</td></tr>
+      <tr><td>5</td><td>Furstenberg 拓扑证明</td><td>1955</td><td>等差数列拓扑</td><td>纯存在性，很短</td></tr>
+      <tr><td>6</td><td>Filip Saidak 构造</td><td>2006</td><td>$\gcd(n,n+1)=1$</td><td>构造性，可逐步执行</td></tr>
+      <tr><td>7</td><td>Euclid 变体：$4k+3$</td><td>—</td><td>模 $4$ 的乘法封闭性</td><td>等差数列里也有无穷多素数</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 class="subhead">动手实验 6 · 欧几里得机器</h3>
+  <div class="lab" aria-labelledby="pp-machine-title">
+    <div class="lab-head">
+      <h4 id="pp-machine-title">取前 $k$ 个素数，看 $\prod p_i+1$ 究竟是什么</h4>
+      <p>拖动 $k$。机器会实时计算 $N=p_1p_2\cdots p_k+1$、把它分解，并标出<strong>不在原来那 $k$ 个素数里</strong>的新素因子。</p>
+    </div>
+    <div class="lab-controls">
+      <div class="control">
+        <label for="pp-k">取前 $k$ 个素数</label>
+        <input type="range" id="pp-k" min="1" max="8" step="1" value="4">
+        <output for="pp-k" id="pp-k-out">4</output>
+      </div>
+    </div>
+    <div class="lab-readout machine-readout" aria-live="polite">
+      <div><span>前 $k$ 个素数 $p_1,\dots,p_k$</span><strong id="pp-list">—</strong></div>
+      <div><span>$N=p_1\cdots p_k+1$</span><strong id="pp-N">—</strong></div>
+      <div><span>$N$ 的素因子分解</span><strong id="pp-factor">—</strong></div>
+      <div><span>新出现的素数（不在表中）</span><strong id="pp-new">—</strong></div>
+    </div>
+    <div class="machine-steps" id="pp-steps" aria-label="逐步构造新素数"></div>
+    <p class="lab-note">关键观察：$N$ 本身<strong>不必</strong>是素数。例如前 6 个素数的乘积加 1 是 $30031=59\times509$；但 $N$ 的任一素因子都必定是新的——这正是 Euclid 证明的全部内容。</p>
+  </div>
+
+  <h3 class="subhead">动手实验 7 · 素数倒数之和与 Erdős 下界</h3>
+  <div class="lab" aria-labelledby="pp-div-title">
+    <div class="lab-head">
+      <h4 id="pp-div-title">把 $N$ 拖大，看 $\sum_{p\le N}1/p$ 与 $\log\log N$ 一起慢慢增长</h4>
+      <p>左图：素数倒数和（蓝）与 $\log\log N$（橙虚线），二者只差一个有界常数。右图：真实的 $\pit$（蓝）与 Erdős 计数证明给出的下界 $\log x/(2\log 2)$（绿虚线）。</p>
+    </div>
+    <div class="lab-controls">
+      <div class="control">
+        <label for="pp-N-range">上限 $N$</label>
+        <input type="range" id="pp-N-range" min="100" max="200000" step="100" value="100000">
+        <output for="pp-N-range" id="pp-N-out">100000</output>
+      </div>
+    </div>
+    <div class="dual-canvas">
+      <figure><canvas id="pp-sum-canvas" role="img" aria-label="素数倒数部分和与 log log N 的对比曲线"></canvas><figcaption>$\sum_{p\le x}1/p$ 与 $\log\log x$</figcaption></figure>
+      <figure><canvas id="pp-pi-canvas" role="img" aria-label="π(x) 与 Erdős 下界的对比曲线"></canvas><figcaption>$\pit$ 与 $\dfrac{\log x}{2\log 2}$</figcaption></figure>
+    </div>
+    <div class="lab-readout" aria-live="polite">
+      <div><span>$\pi(N)$</span><strong id="pp-pi">—</strong></div>
+      <div><span>$\sum_{p\le N}1/p$</span><strong id="pp-sum">—</strong></div>
+      <div><span>$\log\log N$</span><strong id="pp-loglog">—</strong></div>
+      <div><span>Erdős 下界 $\log N/(2\log2)$</span><strong id="pp-bound">—</strong></div>
+    </div>
+  </div>
+
+  <section class="accordion" aria-labelledby="proofs-heading">
+    <h3 id="proofs-heading" class="subhead">七个完整证明
+      <button type="button" id="proof-toggle-all" class="btn small" aria-expanded="false">展开全部</button>
+    </h3>
+
+    <details class="proof" open>
+      <summary>证明 1 · Euclid（约前 300）—— 反证法与最小素因子</summary>
+      <div class="proof-body">
+        <p><strong>要证.</strong> 素数不是有限多个。</p>
+        <p><strong>第 1 步（反设）.</strong> 假设全部素数恰为 $p_1&lt;p_2&lt;\cdots&lt;p_k$，共 $k$ 个。这个列表包含<em>每一个</em>素数。</p>
+        <p><strong>第 2 步（造数）.</strong> 令</p>
+        <div class="math display" data-tex="N=p_1p_2\cdots p_k+1."></div>
+        <p>因为 $k\ge 1$ 且 $p_1=2$，有 $N\ge 3&gt;1$。</p>
+        <p><strong>第 3 步（取素因子）.</strong> 由引理 A，$N$ 至少有一个素因子 $q$。由反设，$q$ 必须出现在这个「完整」列表里，即 $q=p_j$ 对某个 $j$。</p>
+        <p><strong>第 4 步（整除相减）.</strong> $q=p_j$ 显然整除乘积 $p_1\cdots p_k$；同时 $q\mid N$。于是 $q$ 整除两者的差：</p>
+        <div class="math display" data-tex="q\mid N-p_1p_2\cdots p_k=1."></div>
+        <p>但素数 $q\ge 2$，不可能整除 $1$（若 $1=q\cdot t$ 且 $q\ge2,t\in\Z_{\ge1}$，则左边 $\ge2$，矛盾）。</p>
+        <p><strong>第 5 步（结论）.</strong> 矛盾说明反设不成立，故素数无穷多。$\blacksquare$</p>
+        <div class="note-box">
+          <strong>构造性读法（更贴近《几何原本》卷 IX 命题 20）.</strong>
+          不必反设「全部」素数：对<em>任意有限</em>素数集 $S$，令 $N=\prod_{p\in S}p+1$，则 $N&gt;1$ 有素因子 $q$，且任何 $p\in S$ 都整除 $\prod S$ 从而不能整除 $N$（否则 $p\mid1$）。所以 $q\notin S$。从 $S=\{2\}$ 出发反复执行，就能无限地产生新素数。
+        </div>
+        <div class="note-box warn">
+          <strong>常见误区.</strong> 不要说「$N$ 是素数」。$2\cdot3\cdot5\cdot7\cdot11\cdot13+1=30031=59\times509$ 是合数。证明只用到「$N$ 有一个素因子」，这由引理 A 保证。
+        </div>
+        <p><strong>定量推论.</strong> 设 $p_n$ 是第 $n$ 个素数，则 $p_n\le 2^{2^{n-1}}$。归纳：$p_1=2=2^{2^0}$。若对 $i\le n$ 成立，则新素数</p>
+        <div class="math display" data-tex="p_{n+1}\le p_1\cdots p_n+1\le \prod_{i=1}^{n}2^{2^{i-1}}+1=2^{2^n-1}+1\le 2^{2^n}."></div>
+        <p>（最后一步因 $2^{2^n-1}+1\le 2\cdot2^{2^n-1}=2^{2^n}$。）这个界很粗糙，但它给出一个完全初等的无穷性证明。</p>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 2 · Euler（1737）—— 欧拉乘积与调和级数</summary>
+      <div class="proof-body">
+        <p><strong>要证.</strong> $\displaystyle\sum_{p}\frac1p=\infty$；这立即蕴含素数无穷多（有限个素数的倒数之和必有限）。</p>
+        <p><strong>第 1 步（欧拉乘积）.</strong> 对 $\sigma&gt;1$，第 1 章已证（有限乘积展开 + 夹逼）：</p>
+        <div class="math display" data-tex="\zeta(\sigma)=\sum_{n\ge1}\frac1{n^\sigma}=\prod_p\frac1{1-p^{-\sigma}}."></div>
+        <p><strong>第 2 步（取对数并展开）.</strong> 用 $-\log(1-x)=\sum_{k\ge1}x^k/k$（$|x|&lt;1$）逐项展开：</p>
+        <div class="math display" data-tex="\log\zeta(\sigma)=\sum_p\sum_{k\ge1}\frac{p^{-k\sigma}}{k}=\underbrace{\sum_p\frac1{p^\sigma}}_{S(\sigma)}+\underbrace{\sum_p\sum_{k\ge2}\frac{1}{k\,p^{k\sigma}}}_{R(\sigma)}."></div>
+        <p><strong>第 3 步（尾项一致有界）.</strong> 对每个 $p\ge2$、$\sigma\ge1$：</p>
+        <div class="math display" data-tex="\sum_{k\ge2}\frac{1}{k\,p^{k\sigma}}\le\sum_{k\ge2}p^{-k}=\frac{p^{-2}}{1-p^{-1}}=\frac1{p(p-1)}\le\frac2{p^2}."></div>
+        <p>故 $R(\sigma)\le 2\sum_{n\ge2}n^{-2}&lt;2\cdot\frac{\pi^2}{6}&lt;4$，对一切 $\sigma\in(1,2]$ <em>一致有界</em>。</p>
+        <p><strong>第 4 步（左边发散）.</strong> 由积分比较 $\sum_{n\ge1}n^{-\sigma}\ge\int_1^\infty x^{-\sigma}\dd x=\frac1{\sigma-1}$，故 $\zeta(\sigma)\to\infty$、$\log\zeta(\sigma)\to\infty$ 当 $\sigma\to1^+$。</p>
+        <p><strong>第 5 步（推出 $S(\sigma)\to\infty$）.</strong> 由第 2、3 步，$S(\sigma)=\log\zeta(\sigma)-R(\sigma)\to\infty$。</p>
+        <p><strong>第 6 步（反证）.</strong> 若 $\sum_p 1/p=S&lt;\infty$，则对每个 $\sigma&gt;1$ 有 $p^{-\sigma}\le p^{-1}$，故 $S(\sigma)=\sum_p p^{-\sigma}\le S$（部分和关于 $\sigma$ 单调，令 $\sigma\downarrow1$ 由单调收敛定理取极限）。这与第 5 步矛盾。$\blacksquare$</p>
+        <div class="note-box">
+          <strong>完全初等的版本（不用 $\zeta$）.</strong>
+          每个 $n\le N$ 的素因子都 $\le N$，故
+          <div class="math display" data-tex="H_N=\sum_{n\le N}\frac1n\ \le\ \sum_{p\mid n\Rightarrow p\le N}\frac1n=\prod_{p\le N}\left(1-\frac1p\right)^{-1}."></div>
+          取对数并用 $-\log(1-x)\le x+2x^2$（$0\le x\le\frac12$，由 $\sum_{k\ge2}x^k/k\le x^2/(1-x)\le2x^2$）：
+          <div class="math display" data-tex="\log H_N\le\sum_{p\le N}\frac1p+2\sum_{p\le N}\frac1{p^2}\le\sum_{p\le N}\frac1p+2\sum_{n\ge2}\frac1{n^2}."></div>
+          又 $H_N\ge\log N$，于是 $\sum_{p\le N}1/p\ge\log\log N-C$，仍趋于无穷。
+        </div>
+        <p><strong>讲解.</strong> 这个证明第一次把「离散的素数」和「连续的级数」绑在一起：$\sum1/p$ 发散得极慢（$\sim\log\log N$），恰好对应 $\pit\sim x/\log x$。它也是第 1 章「欧拉乘积」与 <code>lean/Riemann/EulerProduct.lean</code> 里有限乘积实验的动机。</p>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 3 · Goldbach（1730）—— Fermat 数两两互素</summary>
+      <div class="proof-body">
+        <p><strong>定义.</strong> 第 $n$ 个 Fermat 数 $F_n=2^{2^n}+1$（$n\ge0$）：$3,5,17,257,65537,4294967297,\dots$</p>
+        <p><strong>第 1 步（关键恒等式）.</strong> 对 $n\ge1$，</p>
+        <div class="math display" data-tex="F_n-2=2^{2^n}-1=\left(2^{2^{n-1}}-1\right)\left(2^{2^{n-1}}+1\right)=(F_{n-1}-2)\,F_{n-1}."></div>
+        <p>由 $F_0=3=F_1-2$ 出发反复代入，归纳得</p>
+        <div class="math display" data-tex="F_n-2=F_0F_1\cdots F_{n-1}\qquad(n\ge1)."></div>
+        <p>验证：$F_1-2=3=F_0$；$F_2-2=15=3\cdot5=F_0F_1$；$F_3-2=255=3\cdot5\cdot17$。</p>
+        <p><strong>第 2 步（两两互素）.</strong> 设 $m&lt;n$，$d=\gcd(F_m,F_n)$。由第 1 步 $F_m\mid F_0\cdots F_{n-1}=F_n-2$，故 $d\mid F_n-2$；又 $d\mid F_n$，所以 $d\mid2$。但所有 $F_n$ 都是奇数（$2^{2^n}$ 为偶数），故 $d=1$。</p>
+        <p><strong>第 3 步（取素因子）.</strong> 每个 $F_n\ge3$，由引理 A 有素因子 $q_n$。若 $m\ne n$，则 $q_m\mid F_m$、$q_n\mid F_n$ 且 $\gcd(F_m,F_n)=1$，故 $q_m\ne q_n$。于是 $\{q_0,q_1,q_2,\dots\}$ 是无穷多个互不相同的素数。$\blacksquare$</p>
+        <div class="note-box warn">
+          <strong>误区.</strong> 不要假设 $F_n$ 本身是素数。费马猜错了：$F_5=4294967297=641\times6700417$。证明只用到「每个 $F_n$ 有<em>某个</em>素因子」，仍然由引理 A 保证。
+        </div>
+        <p><strong>讲解.</strong> 这个证明把 Euclid 的「一次性造数」升级为「预先造好一整列两两互素的数」，于是素数自动无穷多。它还附带一个强结论：$F_n$ 的任一素因子 $q$ 满足 $q\equiv1\pmod{2^{n+1}}$（因为 $2^{2^n}\equiv-1$，故 $2$ 模 $q$ 的阶恰为 $2^{n+1}$）。</p>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 4 · Erdős（1938）—— 平方自由分解与计数</summary>
+      <div class="proof-body">
+        <p><strong>核心想法.</strong> 把每个 $n\le N$ 唯一地写成 $n=a\cdot b^2$，其中 $a$ <em>无平方因子</em>。这样 $a$ 只有 $2^{\pi(N)}$ 种可能，$b\le\sqrt N$，从而逼出 $\pi(N)$ 的下界。</p>
+        <p><strong>第 1 步（分解的存在与唯一）.</strong> 写 $n=\prod p^{e_p}$。令 $a=\prod_{e_p\ \text{奇}}p$（无平方因子），$b=\prod p^{\lfloor e_p/2\rfloor}$。则 $n=ab^2$，且 $a$ 由 $n$ 唯一确定。</p>
+        <p><strong>第 2 步（计数上界）.</strong> $n\le N$ 时 $a$ 的素因子都 $\le N$，而 $\le N$ 的素数只有 $\pi(N)$ 个，故 $a$ 至多有 $2^{\pi(N)}$ 种（每个素数选或不选）；又 $b^2\le n\le N\Rightarrow b\le\sqrt N$，故 $b$ 至多 $\lfloor\sqrt N\rfloor$ 种。因此</p>
+        <div class="math display" data-tex="N=\bigl|\{n:1\le n\le N\}\bigr|\ \le\ 2^{\pi(N)}\sqrt N."></div>
+        <p><strong>第 3 步（解出下界）.</strong> 两边除以 $\sqrt N$ 并取对数：</p>
+        <div class="math display" data-tex="\sqrt N\le 2^{\pi(N)}\quad\Longrightarrow\quad \pi(N)\ge\frac{\log N}{2\log 2}\ \xrightarrow[N\to\infty]{}\ \infty.\ \blacksquare"></div>
+        <div class="note-box">
+          <strong>Erdős 原来的形式：$\sum 1/p$ 发散（不使用欧拉乘积）.</strong>
+          反设 $\sum_p1/p$ 收敛，则存在 $k$ 使尾部 $\sum_{p&gt;p_k}1/p&lt;\tfrac12$。称 $p\le p_k$ 为「小素数」，其余为「大素数」。设 $A(N)=\bigl|\{n\le N:\ n\ \text{只有小素因子}\}\bigr|$。
+          <br>· <em>上界</em>：$n\in A(N)$ 写成 $ab^2$ 时 $a$ 只含小素数，至多 $2^k$ 种，$b\le\sqrt N$，故 $A(N)\le 2^k\sqrt N$。
+          <br>· <em>下界</em>：含大素因子的 $n\le N$ 至多 $\sum_{p&gt;p_k}N/p\le N\sum_{p&gt;p_k}1/p&lt;N/2$，故 $A(N)&gt;N-N/2=N/2$。
+          <br>合并得 $N/2\le2^k\sqrt N$，即 $N\le 2^{2k+2}$，与 $N$ 可任意大矛盾。故 $\sum1/p$ 发散。
+        </div>
+        <p><strong>讲解.</strong> Erdős 的漂亮之处在于：他<em>不</em>用任何分析（没有 $\zeta$、没有对数），只用「平方自由部分」这一组合观察，就同时得到 $\sum1/p=\infty$ 与 $\pit\ge\log N/(2\log2)$。后者虽远弱于素数定理，但完全初等。</p>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 5 · Furstenberg（1955）—— 整数上的拓扑</summary>
+      <div class="proof-body">
+        <p><strong>第 1 步（定义一个拓扑）.</strong> 在 $\Z$ 上取所有等差数列</p>
+        <div class="math display" data-tex="S(a,b)=a+b\Z=\{a+bn:n\in\Z\},\qquad b\ge1,"></div>
+        <p>作为<strong>基</strong>。需验证它确实是基：(i) $S(0,1)=\Z$ 覆盖；(ii) 若 $x\in S(a,b)\cap S(c,d)$，则 $S(a,b)=S(x,b)$、$S(c,d)=S(x,d)$，且</p>
+        <div class="math display" data-tex="S(x,b)\cap S(x,d)=S(x,\lcm(b,d)),"></div>
+        <p>因为 $y-x$ 同时被 $b,d$ 整除当且仅当被 $\mathrm{lcm}(b,d)$ 整除。故两个基元素的交仍是基元素的并，拓扑 $\mathcal T$ 合法。</p>
+        <p><strong>第 2 步（每个非空开集都无限）.</strong> 非空开集含某个 $S(a,b)$，而 $S(a,b)$ 无限。</p>
+        <p><strong>第 3 步（$p\Z$ 是闭集）.</strong> 对素数 $p$，</p>
+        <div class="math display" data-tex="\Z\setminus p\Z=\bigcup_{r=1}^{p-1}(r+p\Z),"></div>
+        <p>右边是 $p-1$ 个基开集之并，故为开集；于是 $p\Z$ 是闭集。</p>
+        <p><strong>第 4 步（一个集合等式）.</strong> 每个整数除 $\pm1$ 外都有素因子（引理 A 用于 $|m|\ge2$），所以</p>
+        <div class="math display" data-tex="\Z\setminus\{-1,1\}=\bigcup_{p\ \text{素数}} p\Z."></div>
+        <p><strong>第 5 步（反证）.</strong> 若素数只有有限个，右边是<strong>有限个闭集之并</strong>，故闭；其补集 $\{-1,1\}$ 就是开集。但 $\{-1,1\}$ 非空且有限，与第 2 步矛盾。故素数无穷多。$\blacksquare$</p>
+        <div class="note-box">
+          <strong>讲解.</strong> 这个证明看上去「把算术问题变魔术」，其实只用了两个事实：等差数列对交封闭、以及引理 A。它<em>不</em>需要唯一分解，也不需要任何级数。更妙的是，把同样论证搬到 $\Z[i]$、$\F_q[x]$ 等环上，立刻给出「不可约元无穷多」的一般结论。
+        </div>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 6 · Filip Saidak（2006）—— $n(n+1)$ 的构造</summary>
+      <div class="proof-body">
+        <p><strong>第 1 步（相邻整数互素）.</strong> 对任意 $m&gt;1$，$\gcd(m,m+1)=1$：若 $d\mid m$ 且 $d\mid m+1$，则 $d\mid1$。</p>
+        <p><strong>第 2 步（每次至少多一个素因子）.</strong> 设 $m$ 有 $t\ge1$ 个<strong>互不相同</strong>的素因子。令</p>
+        <div class="math display" data-tex="M=m(m+1),\qquad \gcd(m,m+1)=1."></div>
+        <p>由引理 A，$m+1\ge2$ 有素因子 $q$；因 $\gcd(m,m+1)=1$，$q$ 不整除 $m$，故 $q$ 是新的。于是 $M$ 至少有 $t+1$ 个不同素因子。</p>
+        <p><strong>第 3 步（迭代）.</strong> 取 $m_1=2\cdot3=6$（已有 $2,3$ 两个素因子），递归定义 $m_{j+1}=m_j(m_j+1)$。由第 2 步归纳可知 $m_j$ 至少有 $j+1$ 个不同素因子。</p>
+        <p><strong>第 4 步（结论）.</strong> 对任意 $j$ 都存在含 $\ge j+1$ 个不同素因子的整数，故素数无穷多。$\blacksquare$</p>
+        <p>具体走几步（可与上面的「欧几里得机器」对照）：</p>
+        <div class="math display" data-tex="6\to 6\cdot7=42\to 42\cdot43=1806\to 1806\cdot1807,\quad 1807=13\cdot139."></div>
+        <p><strong>讲解.</strong> 这其实是 Euclid「乘起来加一」的近亲：$m(m+1)=m^2+m$，而 Euclid 用 $\prod p+1$；两者都靠「相邻整数互素」制造新素因子。Saidak 的版本完全构造、不反证、不用良序以外的工具，2006 年发表时因极短而广为流传。</p>
+      </div>
+    </details>
+
+    <details class="proof">
+      <summary>证明 7 · Euclid 变体 —— $4k+3$ 里也有无穷多素数（通向 Dirichlet）</summary>
+      <div class="proof-body">
+        <p><strong>要证.</strong> 形如 $4k+3$ 的素数有无穷多个。</p>
+        <p><strong>第 1 步（一个模 $4$ 的引理）.</strong> 若奇数 $M\equiv3\pmod4$，则 $M$ 至少有一个素因子 $q\equiv3\pmod4$。<br>
+        <em>证明：</em>$M$ 是奇数，故 $2\nmid M$，$M$ 的素因子全为奇数，每个 $\equiv1$ 或 $3\pmod4$。若所有素因子都 $\equiv1\pmod4$，则它们的乘积（连重数）也 $\equiv1\pmod4$（因为 $1\cdot1\equiv1$），与 $M\equiv3$ 矛盾。故必有 $\equiv3$ 的素因子。</p>
+        <p><strong>第 2 步（反设与造数）.</strong> 设 $\equiv3\pmod4$ 的素数只有 $q_1,\dots,q_k$。令</p>
+        <div class="math display" data-tex="N=4q_1q_2\cdots q_k-1=4(q_1\cdots q_k-1)+3\ \equiv\ 3\pmod 4,"></div>
+        <p>且 $N\ge4\cdot3-1=11&gt;1$（$q_1=3$）。注意 $N$ 是奇数。</p>
+        <p><strong>第 3 步（找新素数）.</strong> 由第 1 步，$N$ 有素因子 $q\equiv3\pmod4$。但每个 $q_i$ 都整除 $4q_1\cdots q_k$，而 $N=4q_1\cdots q_k-1$，故 $q_i\nmid N$（否则 $q_i\mid1$）。所以 $q\notin\{q_1,\dots,q_k\}$，与「列全了」矛盾。$\blacksquare$</p>
+        <div class="note-box">
+          <strong>为什么 $4k+1$ 不能照抄？</strong>
+          因为 $4\cdot Q+1$ 的素因子可以两个都 $\equiv3\pmod4$（而 $3\cdot3\equiv1$），所以同样的论证失败。$4k+1$ 的情形要用 $N=(2Q)^2+1$：$x^2+1$ 的奇素因子必 $\equiv1\pmod4$（因 $-1$ 是模 $q$ 的二次剩余）。这是二次互反律的初等应用。
+        </div>
+        <p><strong>讲解.</strong> 这个 Euclid 式论证把无穷性推进到<strong>等差数列</strong>。一般情形是 Dirichlet 1837 年的定理：$(a,q)=1$ 时 $a,a+q,a+2q,\dots$ 中有无穷多素数；他的证明引入了特征 $\chi$ 与 $L(s,\chi)$（见第 1 章），并用 $L(1,\chi)\ne0$ 收尾——那已经需要解析工具，超出本讲义范围。</p>
+      </div>
+    </details>
+  </section>
+
+  <div class="callout accent">
+    <h3>与 Lean 形式化的对照</h3>
+    <p><code>lean/Riemann/Euclid.lean</code> 里的 <code>Nat.exists_infinite_primes (n : ℕ) : ∃ p, n ≤ p ∧ Prime p</code> 正是<strong>构造性读法</strong>的形式化：取 $p=\operatorname{minFac}(n!+1)$，用 <code>Nat.factorial_pos</code>、<code>Nat.dvd_factorial</code>、<code>Nat.minFac_dvd</code>、<code>Nat.Prime.not_dvd_one</code> 四步把「显然」全部填满。第 7 章的<strong>逐战术步骤器</strong>把每一步的目标状态都展示出来了——<a href="#lean">去走一遍 →</a></p>
+    <p>而证明 2 的有限版本，对应 <code>lean/Riemann/EulerProduct.lean</code> 里用 <code>native_decide</code> 验证的 $\prod_{p\in\{2,3,5\}}(1+1/p)=\sum_{d\mid30}1/d$。</p>
+  </div>
+</section>
+
+<!-- ============ 1859 ============ -->
+<section id="paper" class="section" tabindex="-1" aria-labelledby="paper-title">
+  <div class="section-head">
+    <p class="kicker">第 2 章 · 1859 年那篇论文</p>
+    <h2 id="paper-title">解析延拓与函数方程</h2>
+    <p class="deck">把只在 $\Ree s&gt;1$ 收敛的级数，延拓到整个复平面。</p>
+  </div>
+
+  <div class="prose">
+    <p>论文名 <em>Ueber die Anzahl der Primzahlen unter einer gegebenen Grösse</em>（《论小于给定值的素数的个数》），1859 年 11 月发表于柏林科学院《月度报告》，正文约六页。黎曼在给魏尔斯特拉斯的信里说，原本打算再写一篇更完整的文章，但没能完成。它是黎曼<strong>唯一</strong>发表的数论作品。</p>
+
+    <div class="callout quote">
+      <p>「当然，人们很希望对此有一个严格的证明；但我在几次仓促而徒劳的尝试之后，暂时把这一探索搁置一旁，因为它对我这项研究的直接目的并非必要。」</p>
+      <footer>—— 黎曼论那个「很可能成立」的零点命题（据 D. R. Wilkins 英译转译）</footer>
+    </div>
+
+    <h3 class="subhead">工具箱：$\Gamma$ 函数与 Jacobi theta</h3>
+    <p>Mellin 换元给出关键恒等式（$\Ree s&gt;1$）：</p>
+    <div class="math display" data-tex="\Lambda_0(s):=\pi^{-s/2}\Gamma\!\left(\frac s2\right)\zeta(s)=\int_0^{\infty}t^{s/2-1}\,\psi(t)\,\dd t,\qquad \psi(t)=\sum_{n\ge1}\ee^{-\pi n^2 t}."></div>
+    <p>其中用到了 $\int_0^\infty t^{s/2-1}\ee^{-\pi n^2t}\dd t=\pi^{-s/2}\Gamma(s/2)n^{-s}$。麻烦只在 $t\to0$。Jacobi theta 函数 $\theta(t)=\sum_{n\in\Z}\ee^{-\pi n^2t}=1+2\psi(t)$ 满足</p>
+    <div class="math display" data-tex="\theta(t)=t^{-1/2}\theta(1/t)\quad\Longleftrightarrow\quad \psi(t)=t^{-1/2}\psi(1/t)+\tfrac12(t^{-1/2}-1)."></div>
+    <p>证明靠 Poisson 求和：高斯函数 $\ee^{-\pi x^2}$ 是傅里叶变换的不动点。</p>
+
+    <div class="lab" aria-labelledby="theta-lab-title">
+      <div class="lab-head">
+        <h3 id="theta-lab-title">动手实验 2 · theta 变换公式</h3>
+        <p>拖动 $t$：蓝线是 $\theta(t)$，橙线是 $t^{-1/2}\theta(1/t)$。两条曲线始终重合——这就是函数方程的全部来源。</p>
+      </div>
+      <div class="lab-controls">
+        <div class="control">
+          <label for="theta-t">参数 $t$</label>
+          <input type="range" id="theta-t" min="0.15" max="3" step="0.01" value="1">
+          <output for="theta-t" id="theta-t-out">1.00</output>
+        </div>
+      </div>
+      <div class="lab-figure"><canvas id="theta-canvas" role="img" aria-label="theta(t) 与 t 的负二分之一次方乘 theta(1/t) 的对比曲线"></canvas></div>
+      <div class="lab-readout" aria-live="polite">
+        <div><span>$\theta(t)$</span><strong id="theta-v1">—</strong></div>
+        <div><span>$t^{-1/2}\theta(1/t)$</span><strong id="theta-v2">—</strong></div>
+        <div><span>差值</span><strong id="theta-diff">—</strong></div>
+      </div>
+    </div>
+
+    <h3 class="subhead">三步走</h3>
+    <p>把 $\int_0^\infty$ 在 $t=1$ 处切开，对 $[0,1]$ 段用上面的变换公式并换元 $u=1/t$，得到对所有 $s$ 都成立的表达式：</p>
+    <div class="math display" data-tex="\Lambda_0(s)=\frac{1}{s(s-1)}+\int_1^{\infty}\Bigl(t^{s/2-1}+t^{\frac{1-s}{2}-1}\Bigr)\psi(t)\,\dd t."></div>
+    <p>右端积分对所有 $s\in\C$ 收敛（$\psi(t)=\bigO(\ee^{-\pi t})$），因此它给出 $\zeta$ 的亚纯延拓：唯一极点是 $s=1$ 的一阶极点，留数 $1$；而且右端在 $s\leftrightarrow1-s$ 下不变，于是</p>
+    <div class="math display" data-tex="\Lambda_0(s)=\Lambda_0(1-s),\qquad \zeta(1-s)=2(2\pi)^{-s}\cos\!\left(\frac{\pi s}{2}\right)\Gamma(s)\zeta(s)."></div>
+    <p>乘上 $s(s-1)$ 消掉极点，得到<strong>整函数</strong></p>
+    <div class="math display" data-tex="\xi(s)=\tfrac12\,s(s-1)\pi^{-s/2}\Gamma\!\left(\frac s2\right)\zeta(s),\qquad \xi(s)=\xi(1-s),\quad \xi(0)=\xi(1)=\tfrac12."></div>
+    <p>$\xi$ 的零点恰好就是 $\zeta$ 的非平凡零点。黎曼本人令 $s=\tfrac12+\iu t$，写 $\Xi(t)=\xi(\tfrac12+\iu t)$，并说 $\Xi$ 的零点「很可能都是实数」——这就是黎曼猜想的原始表述。</p>
+
+    <details class="proof">
+      <summary>展开：从 $\Lambda_0(s)=\Lambda_0(1-s)$ 到三角函数形式的函数方程</summary>
+      <div class="proof-body">
+        <p>由 $\Gamma$ 的反射公式 $\Gamma(z)\Gamma(1-z)=\pi/\sin\pi z$ 与倍元公式 $\Gamma(z)\Gamma(z+\tfrac12)=2^{1-2z}\sqrt\pi\,\Gamma(2z)$，可把 $\pi^{-s/2}\Gamma(s/2)\zeta(s)=\pi^{-(1-s)/2}\Gamma((1-s)/2)\zeta(1-s)$ 整理成 $\zeta(1-s)=2(2\pi)^{-s}\cos(\pi s/2)\Gamma(s)\zeta(s)$。注意 $\cos(\pi s/2)=0$ 在 $s=1,3,5,\dots$ 与 $\Gamma(1-s)$ 的极点抵消，而 $s=-2,-4,\dots$ 处 $\cos$ 为零、右侧其它因子有限，于是 $\zeta(-2n)=0$ —— 这就是<strong>平凡零点</strong>。</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="figure-card">
+    <figure>
+      <img src="assets/zeta-real.png" alt="实轴上 ζ(s) 的曲线，标出 s=1 处的极点与负偶数处的平凡零点" loading="lazy">
+      <figcaption>图 2.1　实轴上的 $\zeta(s)$。$s=1$ 是一阶极点；$s=-2,-4,\dots$ 是平凡零点；$\zeta(0)=-1/2$。真正有意思的零点不在实轴上，而在临界带内部。</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ 零点 ============ -->
+<section id="zeros" class="section" tabindex="-1" aria-labelledby="zeros-title">
+  <div class="section-head">
+    <p class="kicker">第 3 章 · 零点</p>
+    <h2 id="zeros-title">临界带：零点在哪里</h2>
+    <p class="deck">所有非平凡零点都躲在 $0&lt;\Ree s&lt;1$ 这条带子里。</p>
+  </div>
+
+  <div class="prose">
+    <p>$\Ree s&gt;1$ 时欧拉乘积不为零；$\Ree s&lt;0$ 时由函数方程，零点只能来自 $\sin(\pi s/2)=0$，即 $s=-2,-4,\dots$。再加上 $\zeta(s)\ne0$ 在 $\Ree s=1$ 上（Hadamard / de la Vallée Poussin 1896）以及 $\xi(s)=\xi(1-s)$，得到 $\Ree s=0$ 上也没有零点。于是非平凡零点满足 $0&lt;\Ree\rho&lt;1$。</p>
+    <p>零点还成<strong>四元组</strong>出现：$\rho,\ 1-\rho,\ \bar\rho,\ 1-\bar\rho$。前两个来自函数方程，后两个来自 $\zeta(\bar s)=\overline{\zeta(s)}$。黎曼猜想 $\Ree\rho=\tfrac12$ 正是说这四元组退化成关于实轴对称的一对。</p>
+    <div class="math display" data-tex="N(T)=\#\{\rho:0&lt;\Im\rho\le T\}=\frac{T}{2\pi}\log\frac{T}{2\pi}-\frac{T}{2\pi}+\bigO(\log T)."></div>
+    <p>这个 Riemann–von Mangoldt 公式说明零点有无穷多个，且越来越密。黎曼还「猜」（并未证明）$\xi$ 可以像多项式一样按零点分解；Hadamard 1893 年用整函数分解理论补上了证明：</p>
+    <div class="math display" data-tex="\xi(s)=\xi(0)\prod_\rho\left(1-\frac{s}{\rho}\right)=\frac12\prod_\rho\left(1-\frac{s}{\rho}\right)."></div>
+  </div>
+
+  <svg class="diagram" viewBox="0 0 760 340" role="img" aria-labelledby="strip-title strip-desc">
+    <title id="strip-title">临界带示意图</title>
+    <desc id="strip-desc">复平面中 0 到 1 之间的竖直带，中间 1/2 处为临界线，零点成四元组对称分布</desc>
+    <defs><linearGradient id="stripFill" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="var(--accent)" stop-opacity=".05"/><stop offset="1" stop-color="var(--accent)" stop-opacity=".18"/></linearGradient></defs>
+    <rect x="180" y="30" width="360" height="270" fill="url(#stripFill)"/>
+    <line class="axis" x1="60" y1="165" x2="700" y2="165"/>
+    <line class="axis" x1="180" y1="20" x2="180" y2="315"/>
+    <line class="axis" x1="540" y1="30" x2="540" y2="300"/>
+    <line class="critical" x1="360" y1="30" x2="360" y2="300"/>
+    <g class="zeros">
+      <circle cx="360" cy="70" r="5"/><circle cx="360" cy="110" r="5"/><circle cx="360" cy="205" r="5"/><circle cx="360" cy="255" r="5"/>
+      <circle cx="270" cy="135" r="5" opacity=".55"/><circle cx="450" cy="135" r="5" opacity=".55"/>
+      <circle cx="270" cy="225" r="5" opacity=".55"/><circle cx="450" cy="225" r="5" opacity=".55"/>
+    </g>
+    <g class="trivial"><circle cx="100" cy="165" r="4"/><circle cx="20" cy="165" r="4"/></g>
+    <g class="lbl">
+      <text x="176" y="326">0</text><text x="352" y="326">1/2</text><text x="532" y="326">1</text>
+      <text x="360" y="22" text-anchor="middle" class="hl">临界线 σ = 1/2</text>
+      <text x="366" y="290" class="hl2">临界带 0 &lt; σ &lt; 1</text>
+      <text x="660" y="158">σ</text><text x="186" y="18">it</text>
+      <text x="540" y="160" class="pole">极点 s=1</text>
+      <text x="30" y="190" class="triv">平凡零点 −2, −4, …</text>
+    </g>
+  </svg>
+
+  <div class="lab" aria-labelledby="beta-lab-title">
+    <div class="lab-head">
+      <h3 id="beta-lab-title">动手实验 3 · 假如零点离开临界线</h3>
+      <p>把「最靠右的零点实部」$\beta$ 从 $0.5$ 拖到 $0.95$，看误差项怎样从 $\sqrt x$ 恶化到几乎 $x$。这就是黎曼猜想的分量。</p>
+    </div>
+    <div class="lab-controls">
+      <div class="control">
+        <label for="beta-slider">零点实部 $\beta=\max\Ree\rho$</label>
+        <input type="range" id="beta-slider" min="0.5" max="0.95" step="0.01" value="0.5">
+        <output for="beta-slider" id="beta-out">0.50</output>
+      </div>
+      <div class="control switch-control">
+        <label for="rh-switch">显示 RH 参考上界 $\sqrt{x}\log x$（绿色虚线）</label>
+        <input type="checkbox" id="rh-switch" checked>
+      </div>
+    </div>
+    <div class="lab-figure"><canvas id="beta-canvas" role="img" aria-label="误差项随零点实部增大而变大的对数坐标曲线"></canvas></div>
+    <div class="lab-readout" aria-live="polite">
+      <div><span>误差量级</span><strong id="beta-order">$x^{1/2}\log x$</strong></div>
+      <div><span>在 $x=10^6$ 处约</span><strong id="beta-num">—</strong></div>
+      <div><span>相对 RH 情形</span><strong id="beta-ratio">1×</strong></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 显式公式 ============ -->
+<section id="explicit" class="section" tabindex="-1" aria-labelledby="explicit-title">
+  <div class="section-head">
+    <p class="kicker">第 4 章 · 显式公式</p>
+    <h2 id="explicit-title">零点怎样「谱分解」出素数</h2>
+    <p class="deck">每个零点贡献一个波；把这些波加起来，就得到阶梯状的素数计数。</p>
+  </div>
+
+  <div class="prose">
+    <p>黎曼不直接对 $\pit$ 反演，而先引入加权计数函数</p>
+    <div class="math display" data-tex="J(x)=\sum_{n\ge1}\frac1n\,\pi(x^{1/n})=\sum_{p^m\le x}\frac1m,\qquad \log\zeta(s)=\sum_{p,m}\frac{1}{m}p^{-ms}. "></div>
+    <p>$J$ 在 $x=p^m$ 处跳 $1/m$，它的 Dirichlet 级数恰好是 $\log\zeta(s)$。对 $\zeta$ 取对数导数得到 $-\zeta'/\zeta(s)=\sum_{n\ge1}\Lambda(n)n^{-s}$，其中 $\Lambda(n)=\log p$ 当 $n=p^k$，否则 $0$。再用 Perron 反演</p>
+    <div class="math display" data-tex="\frac{1}{2\pi\iu}\int_{c-\iu\infty}^{c+\iu\infty}\frac{(x/y)^s}{s}\,\dd s=\begin{cases}1&amp;y&lt;x\\ \tfrac12&amp;y=x\\0&amp;y&gt;x\end{cases}"></div>
+    <p>把积分路径向左移动，捡起 $\log\zeta$ 的所有奇点，就得到黎曼的<strong>显式公式</strong>（$x&gt;1$）：</p>
+    <div class="math display" data-tex="J_0(x)=\operatorname{Li}(x)-\sum_{\rho}\operatorname{Li}(x^{\rho})-\log 2+\int_x^{\infty}\frac{\dd t}{t(t^2-1)\log t}."></div>
+    <div class="callout accent">
+      <h3>把它当成频谱来读</h3>
+      <div class="math display" data-tex="\pi(x)=\underbrace{\operatorname{Li}(x)}_{\text{平滑主项（直流）}}+\underbrace{\sum_\rho\bigl(\text{振幅 }x^{\Ree\rho}/\abs{\rho},\ \text{频率 }\Im\rho\bigr)}_{\text{由零点决定的波动}}+\text{小修正}."></div>
+      <p>$\abs{x^\rho}=x^{\Ree\rho}$：零点越靠右，波动越大。RH 说 $\Ree\rho=\tfrac12$，即所有波动都被压到 $\sqrt x$ 量级，素数分布「尽可能规则」。</p>
+    </div>
+    <p>最后用 Möbius 反演把 $J$ 变回 $\pit$：</p>
+    <div class="math display" data-tex="\pi(x)=\sum_{n\ge1}\frac{\mu(n)}{n}\,J(x^{1/n}),\qquad \sum_{d\mid n}\mu(d)=[n=1]."></div>
+    <p>不含零点信息的平滑近似 $R(x)=\sum_{n\ge1}\frac{\mu(n)}{n}\Li(x^{1/n})$ 在数值上比 $\Li(x)$ 更贴近 $\pit$。</p>
+  </div>
+
+  <div class="lab" aria-labelledby="wave-lab-title">
+    <div class="lab-head">
+      <h3 id="wave-lab-title">动手实验 4 · 逐个加入零点，看阶梯长出来</h3>
+      <p>按下播放，或拖动零点个数 $k$。主项 $\Li(x)$ 是平滑的；每加入一对零点 $\tfrac12\pm\iu\gamma_k$，就多一个振荡修正，逼近真实的 $J(x)$ 阶梯。</p>
+    </div>
+    <div class="lab-controls">
+      <div class="control">
+        <label for="wave-k">加入的零点对数 $k$</label>
+        <input type="range" id="wave-k" min="0" max="14" step="1" value="0">
+        <output for="wave-k" id="wave-k-out">0</output>
+      </div>
+      <div class="control">
+        <label for="wave-x">横轴上限 $x_{\max}$</label>
+        <input type="range" id="wave-x" min="20" max="200" step="5" value="100">
+        <output for="wave-x" id="wave-x-out">100</output>
+      </div>
+      <button type="button" class="btn small" id="wave-play" aria-label="播放：逐个加入零点">▶ 播放</button>
+    </div>
+    <div class="lab-figure"><canvas id="wave-canvas" role="img" aria-label="加入零点后逐步逼近素数计数阶梯函数的曲线"></canvas></div>
+    <p class="lab-note">这里用 $\operatorname{Li}(x^\rho)\approx x^{\rho}/\rho\log x$ 的渐近式，把共轭零点对合并成实余弦波：每一对的贡献约为 $-\dfrac{2\sqrt{x}}{\log x}\Re\dfrac{\ee^{\iu\gamma\log x}}{1/2+\iu\gamma}$。这是显式公式的可视化，不是精确数值计算。</p>
+  </div>
+
+  <h3 class="subhead">$\pit$ 与它的近似（可悬停查看数值）</h3>
+  <div class="lab-figure"><canvas id="pi-canvas" role="img" aria-label="π(x)、Li(x) 与 x/log x 三条曲线，可悬停读取数值"></canvas><div id="pi-tooltip" class="tooltip" hidden></div></div>
+</section>
+
+<!-- ============ PNT / RH ============ -->
+<section id="pnt" class="section" tabindex="-1" aria-labelledby="pnt-title">
+  <div class="section-head">
+    <p class="kicker">第 5 章 · 素数定理与黎曼猜想</p>
+    <h2 id="pnt-title">从「没有零点」到「所有零点都在中间」</h2>
+    <p class="deck">1896 年的突破，与一个至今未解的问题。</p>
+  </div>
+
+  <div class="prose">
+    <p>$\psi$ 的显式公式比 $J$ 更干净：</p>
+    <div class="math display" data-tex="\psi_0(x)=x-\sum_\rho\frac{x^\rho}{\rho}-\log(2\pi)-\tfrac12\log(1-x^{-2})."></div>
+    <p>若存在 $\Ree\rho=1$ 的零点，$\abs{x^\rho/\rho}=x/\abs\rho$ 与主角 $x$ 同阶，$\psi(x)\sim x$ 就不成立。所以关键在于 $\zeta(1+\iu t)\ne0$。</p>
+    <details class="proof">
+      <summary>展开：那个漂亮的三角不等式</summary>
+      <div class="proof-body">
+        <p>对 $\sigma&gt;1$，由 $\log\zeta(s)=\sum_{p,k}p^{-k\sigma}\ee^{-\iu kt\log p}/k$ 取实部：</p>
+        <div class="math display" data-tex="\Ree\bigl[3\log\zeta(\sigma)+4\log\zeta(\sigma+\iu t)+\log\zeta(\sigma+2\iu t)\bigr]=\sum_{p,k}\frac{p^{-k\sigma}}{k}\bigl[3+4\cos\theta+\cos2\theta\bigr]\ge0,"></div>
+        <p>其中 $\theta=kt\log p$，而 $3+4\cos\theta+\cos2\theta=2(1+\cos\theta)^2\ge0$。取指数得 $\abs{\zeta(\sigma)}^3\abs{\zeta(\sigma+\iu t)}^4\abs{\zeta(\sigma+2\iu t)}\ge1$。反设 $\zeta(1+\iu t_0)=0$，令 $\sigma\to1^+$：$(\sigma-1)^{-3}\cdot\bigO((\sigma-1)^4)\cdot\bigO(1)\to0$，矛盾。</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="lab" aria-labelledby="trig-lab-title">
+    <div class="lab-head"><h3 id="trig-lab-title">动手实验 5 · $3+4\cos\theta+\cos2\theta$</h3><p>拖动 $\theta$：这条曲线永远不低于零，正好是素数定理证明里最关键的一步。</p></div>
+    <div class="lab-controls"><div class="control"><label for="trig-slider">$\theta$</label><input type="range" id="trig-slider" min="0" max="6.28" step="0.01" value="1"><output for="trig-slider" id="trig-out">1.00</output></div></div>
+    <div class="lab-figure"><canvas id="trig-canvas" role="img" aria-label="三角恒等式 3+4cosθ+cos2θ 恒非负的曲线"></canvas></div>
+    <div class="lab-readout" aria-live="polite"><div><span>$3+4\cos\theta+\cos2\theta$</span><strong id="trig-val">—</strong></div><div><span>$2(1+\cos\theta)^2$</span><strong id="trig-val2">—</strong></div></div>
+  </div>
+
+  <div class="prose">
+    <p>由此 Hadamard 与 de la Vallée Poussin 在 1896 年独立证明 <strong>素数定理</strong> $\pit\sim x/\log x\sim\Li(x)$。1949 年 Erdős 与 Selberg 又给出了不用复分析的「初等」证明，但黎曼的框架额外给出了误差项与整个 $L$ 函数体系。</p>
+    <div class="math display" data-tex="\mathrm{RH}\quad\Longleftrightarrow\quad \pi(x)=\operatorname{Li}(x)+\bigO(\sqrt{x}\log x)\qquad(\text{von Koch, 1901})."></div>
+    <p>不假设 RH 时，目前最好的无条件误差项来自 Korobov–Vinogradov 零自由区域，与 $\sqrt x$ 相差很远。这就是 RH 的分量。</p>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>RH 的若干等价命题</h3>
+      <table class="nice-table"><thead><tr><th>等价陈述</th><th>出处</th></tr></thead><tbody>
+        <tr><td>所有非平凡零点满足 $\Ree\rho=\tfrac12$</td><td>Riemann 1859</td></tr>
+        <tr><td>$\pit=\Li(x)+\bigO(\sqrt x\log x)$</td><td>von Koch 1901</td></tr>
+        <tr><td>$M(x)=\sum_{n\le x}\mu(n)=\bigO(x^{1/2+\eps})$</td><td>Mertens 函数</td></tr>
+        <tr><td>$\sigma(n)&lt;\ee^\gamma n\log\log n\ (n&gt;5040)$</td><td>Robin 1984</td></tr>
+        <tr><td>$\Xi(t)$ 的全部零点为实数</td><td>黎曼原始记号</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card">
+      <h3>部分结果与数值证据</h3>
+      <p>Hardy 1914 证明临界线上有无穷多零点；Selberg 1942 证明正比例；Levinson 1974 超过 $1/3$；Conrey 1989 超过 $2/5$；Pratt 等 2020 超过 $5/12\approx41.7\%$。</p>
+      <p>数值上，Platt–Trudgian 2021 严格验证 $|\Im\rho|\le3\times10^{12}$ 内约 $1.2\times10^{13}$ 个零点都在临界线上。</p>
+      <div class="warn">注意：1985 年 Odlyzko–te Riele 否定了更强的 Mertens 猜想 $|M(x)|&lt;\sqrt x$，但它<strong>不</strong>否定 RH。数值证据再强也不能代替证明。</div>
+    </div>
+  </div>
+
+  <div class="callout accent">
+    <h3>物理里的回响</h3>
+    <p>Hilbert–Pólya 猜想：若某个自伴算子的本征值恰是 $\tfrac12+\iu\gamma_n$，RH 立即得证。Montgomery 1973 算出零点对关联函数趋于 $1-(\sin\pi u/\pi u)^2$ —— Dyson 指出这正是随机矩阵 GUE 本征值的对关联。Odlyzko 在 $10^{20}$ 高度附近的数值验证了这一点。素数分布的涨落，看起来像重原子核能级的涨落。</p>
+  </div>
+</section>
+
+<!-- ============ 遗产 ============ -->
+<section id="legacy" class="section" tabindex="-1" aria-labelledby="legacy-title">
+  <div class="section-head">
+    <p class="kicker">第 6 章 · 遗产</p>
+    <h2 id="legacy-title">黎曼造好的工具，与它们后来长成的树</h2>
+    <p class="deck">他只发表了一篇数论论文，但那篇论文用的是他此前十年自己造的语言。</p>
+  </div>
+
+  <div class="prose">
+    <p>Bernhard Riemann（1826–1866），哥廷根，师从高斯，听过狄利克雷的课，1859 年接任哥廷根教授，1866 年因结核去世，年仅 39 岁。他发表的文章不多，几乎每篇都开创一个领域。</p>
+  </div>
+
+  <div class="grid-cards">
+    <article class="card">
+      <svg viewBox="0 0 120 90" aria-hidden="true" class="mini-svg"><ellipse cx="60" cy="45" rx="42" ry="18" fill="none" stroke="currentColor" stroke-width="1.4"/><ellipse cx="60" cy="45" rx="20" ry="30" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M18 45 Q60 75 102 45" fill="none" stroke="var(--accent)" stroke-width="1.6"/><circle cx="60" cy="45" r="3" fill="var(--warm)"/></svg>
+      <h3>1851 · 复变函数与 Riemann 面</h3>
+      <p>用 Cauchy–Riemann 方程定义解析函数；把多值函数变成 Riemann 面上的单值函数；Riemann 映射定理。<strong>「解析延拓」的语言基础</strong>就在他八年前自己的博士论文里。</p>
+    </article>
+    <article class="card">
+      <svg viewBox="0 0 120 90" aria-hidden="true" class="mini-svg"><g stroke="currentColor" stroke-width=".8" opacity=".6"><path d="M20 20H100M20 35H100M20 50H100M20 65H100M20 80H100"/><path d="M20 20V80M40 20V80M60 20V80M80 20V80M100 20V80"/></g><circle cx="60" cy="50" r="14" fill="var(--accent)" opacity=".3"/><circle cx="60" cy="50" r="3" fill="var(--warm)"/></svg>
+      <h3>1857 · Abel 函数与 theta 函数</h3>
+      <p>亏格 $g$、模数、双有理等价、Abel 积分分类、Jacobi 反演问题，以及</p>
+      <div class="math" data-tex="\Theta(z,F)=\sum_{n\in\Z^g}\exp\!\bigl(2\pi\iu(\tfrac12n^{\mathsf T}Fn+n^{\mathsf T}z)\bigr)."></div>
+      <p>$g=1$ 的情形就是第二章证明函数方程用的 Jacobi theta；一般情形是模形式的祖先，经 Hecke 通向整个自守形式与 Langlands 纲领。</p>
+    </article>
+    <article class="card">
+      <h3>1854 · 几何基础演说</h3>
+      <p>提出 $n$ 维流形与度量 $\dd s^2=\sum g_{ij}\dd x_i\dd x_j$，即黎曼几何——广义相对论的数学基础。它不属于数论，但值得记住：同一个头脑同时奠定了这两件事。</p>
+    </article>
+    <article class="card">
+      <h3>Riemann–Roch（1865，Roch 补全）</h3>
+      <div class="math" data-tex="\ell(D)-\ell(K-D)=\deg D+1-g."></div>
+      <p>把「给定极点条件下亚纯函数空间的维数」变成拓扑/代数不变量。经 Weil、Grothendieck 发展为代数几何与算术几何的核心；Weil 猜想（有限域上的 RH 类比）最终由 Deligne 1974 证明。</p>
+    </article>
+    <article class="card">
+      <h3>遗稿与 Riemann–Siegel 公式</h3>
+      <p>1932 年 Siegel 整理遗稿，发现黎曼其实做过大量数值计算，并掌握计算 $\zeta(\tfrac12+\iu t)$ 的渐近展开：</p>
+      <div class="math" data-tex="Z(t)=\ee^{\iu\vartheta(t)}\zeta(\tfrac12+\iu t)\in\R,\quad Z(t)\approx2\sum_{n\le\sqrt{t/2\pi}}\frac{\cos(\vartheta(t)-t\log n)}{\sqrt n}+R(t)."></div>
+      <p>因为 $Z(t)$ 实值，找到变号就能严格确认一个临界线零点——这是 Turing 方法与当代大规模验证的算法基础。</p>
+    </article>
+    <article class="card">
+      <h3>读什么</h3>
+      <p>原始论文（Clay 数学所有影印与 Wilkins 英译，只有六页）；H. M. Edwards《Riemann's Zeta Function》按论文顺序逐段讲解，是最佳下一站；Titchmarsh、Ingham、Iwaniec–Kowalski 为标准参考；Apostol、Davenport 为入门教材。</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============ LEAN ============ -->
+<section id="lean" class="section" tabindex="-1" aria-labelledby="lean-title">
+  <div class="section-head">
+    <p class="kicker">第 7 章 · 形式化</p>
+    <h2 id="lean-title">用 Lean 4 把上面的一切写成可检查的命题</h2>
+    <p class="deck">命题即类型；证明是这个类型的一个项；内核只检查类型是否正确。</p>
+  </div>
+
+  <div class="prose">
+    <p>纸面上写「显然 $p\mid n!$」，读者自己补理由；在 Lean 里它必须变成一个证明项，由一个极小的<strong>可信内核</strong>逐条检查。凡是欠着的步骤，都必须显式写成 <code>sorry</code>、<code>axiom</code> 或库定理——机器不会替你「显然」。</p>
+    <div class="math display" data-tex="\texttt{theorem}\ \texttt{euclid}\ (n:\mathbb N):\ \exists p,\ n\le p\wedge p.\texttt{Prime}\ :=\ \texttt{by}\ \cdots"></div>
+    <p>本仓库的 <code>lean/</code> 工程锁定 <strong>Lean 4.36.0 + mathlib v4.36.0</strong>，全部定理已通过 <code>lake build</code> 内核检查；只有 <code>Exercises.lean</code> 故意留了三个 <code>sorry</code> 作为练习。</p>
+  </div>
+
+  <div class="two-col">
+    <div class="card">
+      <h3>信任清单</h3>
+      <table class="nice-table"><thead><tr><th>机制</th><th>信任含义</th></tr></thead><tbody>
+        <tr><td><code>by</code> 战术生成的证明项</td><td>内核检查，不需信任战术</td></tr>
+        <tr><td><code>axiom</code></td><td>新增假设，危险</td></tr>
+        <tr><td><code>sorry</code></td><td>留洞，Lean 会警告</td></tr>
+        <tr><td><code>native_decide</code></td><td>交给计算，结果可由内核复核</td></tr>
+        <tr><td><code>#eval</code></td><td>求值，不产生证明</td></tr>
+      </tbody></table>
+    </div>
+    <div class="card">
+      <h3>mathlib 里已经有什么</h3>
+      <div class="math" data-tex="\texttt{riemannZeta}:\mathbb C\to\mathbb C,\quad \texttt{completedRiemannZeta}_0(1-s)=\texttt{completedRiemannZeta}_0(s)"></div>
+      <div class="math" data-tex="\texttt{Nat.isEquivalent\_primeCounting}:\ (\text{fun }x\mapsto\uparrow(\pi\lfloor x\rfloor_+))\sim[\texttt{atTop}]\ \text{fun }x\mapsto x/\log x"></div>
+      <p>甚至直接定义了 <code>RiemannHypothesis : Prop</code>，并附了一句库作者的幽默：<em>「构造一个该类型的项值一百万美元」</em>。mathlib 里没有任何 <code>theorem RH_proof</code> —— 它只是被<strong>精确陈述</strong>出来了。</p>
+    </div>
+  </div>
+
+  <h3 class="subhead">七个示例模块 <span class="hint">切换标签查看真实源码</span></h3>
+  <div class="tabs" id="lean-tabs">
+    <div class="tablist" focusgroup="tablist nomemory" aria-label="Lean 示例文件">
+      <button type="button" id="tab-basic" aria-selected="true" focusgroupstart>Basic</button>
+      <button type="button" id="tab-euclid" aria-selected="false">Euclid</button>
+      <button type="button" id="tab-eulerproduct" aria-selected="false">EulerProduct</button>
+      <button type="button" id="tab-moebius" aria-selected="false">Moebius</button>
+      <button type="button" id="tab-pc" aria-selected="false">PrimeCounting</button>
+      <button type="button" id="tab-zeta" aria-selected="false">ZetaStatements</button>
+      <button type="button" id="tab-ex" aria-selected="false">Exercises</button>
+    </div>
+    <div class="tabpanels">
+      <div role="tabpanel" aria-labelledby="tab-basic" tabindex="0"><div class="panel-inner"><pre><code></code></pre></div></div>
+      <div role="tabpanel" aria-labelledby="tab-euclid" hidden="until-found"><div class="panel-inner"><pre><code></code></pre></div></div>
+      <div role="tabpanel" aria-labelledby="tab-eulerproduct" hidden="until-found"><div class="panel-inner"><pre><code></code></pre></div></div>
+      <div role="tabpanel" aria-labelledby="tab-moebius" hidden="until-found"><div class="panel-inner"><pre><code></code></pre></div></div>
+      <div role="tabpanel" aria-labelledby="tab-pc" hidden="until-found"><div class="panel-inner"><pre><code></code></pre></div></div>
+      <div role="tabpanel" aria-labelledby="tab-zeta" hidden="until-found"><div class="panel-inner"><pre><code></code></pre></div></div>
+      <div role="tabpanel" aria-labelledby="tab-ex" hidden="until-found"><div class="panel-inner"><pre><code></code></pre></div></div>
+    </div>
+  </div>
+  <p class="code-note">代码来自仓库 <code>lean/Riemann/</code>，已通过内核检查。<code>Exercises.lean</code> 中的 <code>sorry</code> 是留给读者的练习，构建时会打印警告。</p>
+
+  <div class="lab" aria-labelledby="stepper-title">
+    <div class="lab-head"><h3 id="stepper-title">交互 · 逐战术拆解欧几里得定理</h3><p>用「下一步」走一遍 <code>euclid</code> 的证明，观察目标状态（goal state）怎样一步步被消掉。</p></div>
+    <div class="stepper">
+      <div class="stepper-code"><pre id="stepper-code"><code></code></pre></div>
+      <div class="stepper-state" aria-live="polite">
+        <div class="state-label">当前目标</div>
+        <pre id="stepper-goal"></pre>
+        <div class="state-label">上下文</div>
+        <pre id="stepper-ctx"></pre>
+      </div>
+    </div>
+    <div class="stepper-buttons">
+      <button type="button" class="btn small" id="step-prev" disabled>← 上一步</button>
+      <span id="step-count" aria-live="polite">1 / 8</span>
+      <button type="button" class="btn small primary" id="step-next">下一步 →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz" class="section" tabindex="-1" aria-labelledby="quiz-title">
+  <div class="section-head">
+    <p class="kicker">自测</p>
+    <h2 id="quiz-title">你带走了什么？</h2>
+    <p class="deck">六道题，检查这条主线是否真的连起来了。</p>
+  </div>
+  <div class="quiz" id="quiz-root">
+    <div class="quiz-progress"><div id="quiz-bar"></div><span id="quiz-progress-text">0 / 6</span></div>
+    <div id="quiz-body" aria-live="polite"></div>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <p>配套仓库：<a href="https://github.com/tigeregit/riemann-number-theory-lecture">tigeregit/riemann-number-theory-lecture</a> · 66 页 LaTeX 讲义 + Lean 4 形式化工程</p>
+  <p>公式由本地打包的 KaTeX 渲染；图形由 Canvas / SVG 实时绘制，无外部网络依赖。</p>
+</footer>
+
+<dialog id="settings" aria-labelledby="settings-title" closedby="any">
+  <h2 id="settings-title">阅读设置</h2>
+  <form method="dialog">
+    <fieldset>
+      <legend>配色方案</legend>
+      <label><input type="radio" name="scheme" value="system" checked> 跟随系统</label>
+      <label><input type="radio" name="scheme" value="light"> 浅色</label>
+      <label><input type="radio" name="scheme" value="dark"> 深色</label>
+    </fieldset>
+    <fieldset>
+      <legend>动画</legend>
+      <label><input type="checkbox" id="settings-reduce" checked> 启用动画（关闭后动画静止）</label>
+    </fieldset>
+    <menu><button value="cancel">取消</button><button value="apply" class="btn primary" autofocus>应用</button></menu>
+  </form>
+</dialog>
+
+</body>
+</html>
