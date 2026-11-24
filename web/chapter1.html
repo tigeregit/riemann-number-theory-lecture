@@ -57,6 +57,16 @@
     <p>只需要：整数整除、数学归纳法、级数收敛的基本判别、以及一点复数的模。凡是超出这个范围的地方都会明确标出。</p>
     <p><strong>记号.</strong> $p$ 恒表示素数；$\pi(x)=\bigl|\{p\le x\}\bigr|$；$\log$ 是自然对数；$\zeta(s)=\sum_{n\ge1}n^{-s}$；$s=\sigma+\iu t$；$\Lambda$、$\mu$、$\Li$、$\psi$、$\theta$ 在用到时定义。</p>
   </div>
+    <div class="ch1-note">
+      <p><strong>预备知识对照（只假设你学过高数、线代、概率统计）.</strong> 本章主体只用：整数整除、数学归纳法、级数收敛判别（高数）、线性组合（线代）。下面的名词偶尔出现，都配了「用学过的东西怎么理解」；标「可跳过」的不影响主线（算术基本定理 → 欧拉乘积 → $\sum 1/p$ 发散 → $\pi(x)$ 估计）。</p>
+      <p>· <strong>良序原理</strong>（§1.1、§1.4）：正整数集非空子集必有最小元，就是<strong>数学归纳法</strong>的另一种说法，下面单独讲，不超纲。
+      <br>· <strong>一致收敛 / Weierstrass M-判别法 / 全纯</strong>（§1.2）：高数里「函数项级数一致收敛」的判别法与「复变量可导」。可跳过：§1.3 的欧拉乘积证明只用「绝对收敛级数可以重排」。
+      <br>· <strong>Stirling 公式</strong>（§1.5）：$\log(N!)\approx N\log N-N$，把阶乘换成对数的近似。可跳过：只影响 Chebyshev 证明里误差项的大小，不影响结论。
+      <br>· <strong>二次剩余、有限群的特征</strong>（§1.6）：属于后续的代数/数论课。本章只要求读懂 $4k+3$ 那段 Euclid 式初等证明；一般 Dirichlet 定理只作陈述。
+      <br>· <strong>Perron / Mellin 反演</strong>（§1.7）：「从级数把系数取回来」的积分公式，第二章才真正用，这里只需知道「必须沿复平面里的一条竖线积分」。
+      <br>· <strong>拓扑</strong>（总讲义「素数无穷多」专题的 Furstenberg 证明）：选读，完全可跳过；Euclid、Euler、Erdős、Saidak 四个证明都不需要它。</p>
+      <p>另外，$\gcd(a,b)$、良序原理这类名词在第一次出现时都给了定义框（§1.1），不用查别处。</p>
+    </div>
   <div class="ch1-table-wrapper" tabindex="0" role="region" aria-label="本章符号表">
     <table class="ch1-table"><thead><tr><th>记号</th><th>定义</th><th>首次出现</th></tr></thead><tbody>
       <tr><td>$a\mid b$</td><td>存在整数 $k$ 使 $b=ak$</td><td>§1.1</td></tr>
@@ -84,10 +94,20 @@
       <p><strong>其它写法.</strong> 数论书常把 $\gcd(a,b)$ 简记为 $(a,b)$；本讲义 §1.6 里的 $(a,q)=1$ 就是 $\gcd(a,q)=1$，读作「$a$ 与 $q$ 互素」。</p>
     </div>
 
+    <div class="ch1-note">
+      <p><strong>良序原理（Well-Ordering Principle）.</strong> 正整数集 $\Z_{&gt;0}=\{1,2,3,\dots\}$ 的<strong>任意非空子集都有最小元</strong>。它就是高数里用过的<strong>数学归纳法</strong>的另一种说法：从 $1$ 开始一个一个数，第一次落在这个集合里的数就是它的最小元；等价地，正整数不可能无穷地严格变小。例：正偶数集的最小元是 $2$；$\{n^2+1:\ n\ge1\}$ 的最小元也是 $2$。</p>
+      <p><strong>为什么必须限定「正整数」.</strong> 全体整数 $\Z$ 没有最小元（可以一直往负方向走）；正有理数、正实数也没有（总能再取一半）。所以下面把 $S$ 定义成「<em>正的</em>线性组合」之集，它才是 $\Z_{&gt;0}$ 的子集，良序原理才用得上。</p>
+      <p><strong>直观.</strong> 不存在无穷严格下降的正整数序列 $n_1&gt;n_2&gt;n_3&gt;\cdots$；任何一次「变小」都必须在有限步内停住（这就是高数里「单调下降且有下界必收敛」在整数上的离散版本）。Bézout 证明里的带余除法，正是把「$d$ 最小」翻译成「余数 $r$ 不能是正的」，从而 $r=0$、$d\mid a$。</p>
+      <p>本章 §1.4 的引理 A（每个整数 $m\ge2$ 有素因子）用的也是同一个原理：取 $m$ 的「最小的大于 $1$ 的因子」。</p>
+    </div>
+
     <h3>引理 1.1（Bézout 恒等式）</h3>
     <p>对不全为零的整数 $a,b$，存在 $x,y\in\Z$ 使 $ax+by=\gcd(a,b)$。</p>
     <details class="ch1-proof" open><summary>展开完整证明</summary><div class="ch1-proof-body">
-      <p>设 $S=\{au+bv:\ u,v\in\Z,\ au+bv&gt;0\}$。它非空（取 $(u,v)=(\pm a,\pm b)$ 中使 $au+bv&gt;0$ 的一组；例如 $a^2+b^2&gt;0$）。由良序原理，$S$ 有最小元 $d=ax_0+by_0$。</p>
+      <p><strong>第 0 步（构造集合，并说明它非空）.</strong> 令</p>
+      <div class="math display" data-tex="S=\{au+bv:\ u,v\in\Z,\ au+bv&gt;0\}\ \subseteq\ \Z_{&gt;0},"></div>
+      <p>即「所有能写成 $a,b$ 整系数线性组合的<em>正</em>整数」之集——这和你在线性代数里见过的「由 $a,b$ 生成的线性组合」是同一回事，只不过系数只能是整数、且只保留结果为正的。因为 $a,b$ 不全为零，$a^2+b^2&gt;0$；取 $u=a, v=b$ 便得 $au+bv=a^2+b^2\in S$，故 $S\ne\varnothing$。更直接地：若 $a\ne0$，取 $(u,v)=(1,0)$ 或 $(-1,0)$ 使 $au=|a|&gt;0$；若 $a=0,b\ne0$，取 $(u,v)=(0,1)$ 或 $(0,-1)$ 使 $bv=|b|&gt;0$。</p>
+      <p>由良序原理，$S$ 有最小元，记作 $d=ax_0+by_0$（$x_0,y_0$ 是取到最小值的那组系数），且 $d&gt;0$。下面两步说明这个 $d$ 恰好就是 $\gcd(a,b)$。</p>
       <p><em>第一步：$d\mid a$ 与 $d\mid b$。</em> 对 $a$ 作带余除法：$a=qd+r$，$0\le r&lt;d$。则
       $r=a-qd=a-q(ax_0+by_0)=a(1-qx_0)+b(-qy_0)$ 是 $a,b$ 的整系数线性组合。若 $r&gt;0$，则 $r\in S$ 且 $r&lt;d$，与 $d$ 的最小性矛盾；故 $r=0$，即 $d\mid a$。同理 $d\mid b$。</p>
       <p><em>第二步：$d$ 是<strong>最大</strong>公因子。</em> 若 $c\mid a$ 且 $c\mid b$，则 $c\mid ax_0+by_0=d$，故 $c\le d$（取正整数 $c$）。于是 $d=\gcd(a,b)$。$\square$</p>

@@ -250,6 +250,12 @@
     <p><strong>引理 A.</strong> 每个整数 $m\ge 2$ 至少有一个素因子。<br>
     <strong>证明.</strong> 考虑集合 $D=\{d>1: d\mid m\}$，它非空（$m\in D$）。由自然数的良序原理，$D$ 有最小元 $d$。若 $d$ 不是素数，则 $d=ab$ 且 $1&lt;a&lt;d$，于是 $a\mid d\mid m$，即 $a\in D$ 且 $a&lt;d$，与 $d$ 的最小性矛盾。故 $d$ 是素数，且 $d\mid m$。$\square$</p>
     <p>注意这条引理只用<strong>整除与良序</strong>，完全不需要算术基本定理（唯一分解）。这也是 Euclid 证明比 Euler 乘积更「省工具」的原因。</p>
+    <p><strong>良序原理（Well-Ordering Principle）.</strong> 正整数集 $\{1,2,3,\dots\}$ 的<strong>任意非空子集都有最小元</strong> —— 就是高数里数学归纳法的另一种说法：从 $1$ 往上数，第一次命中的就是最小元；等价地，正整数不能无穷地严格变小。注意必须是「正整数」：全体整数、正有理数都没有最小元。$D$ 是正整数集的非空子集，所以能取最小元 $d$。</p>
+  </div>
+
+  <div class="callout accent">
+    <h3>阅读提示（只假设高数 / 线代 / 概率统计）</h3>
+    <p>下面七个证明里，<strong>1、2、3、6、7 号</strong>只用整除、归纳法与级数（高数），建议按顺序读；<strong>4 号 Erdős</strong> 用到一点组合计数，也不超纲。<strong>5 号 Furstenberg 用到了点集拓扑</strong>（开集、闭集），超出本科公共课范围，标为<strong>选读，可整段跳过</strong>，不影响其余六个证明，也不影响主线。文中凡出现超纲名词都给了通俗解释或「可跳过」标注。</p>
   </div>
 
   <h3 class="subhead">七个证明一览</h3>
