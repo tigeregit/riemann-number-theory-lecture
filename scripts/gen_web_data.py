@@ -46,7 +46,8 @@ ZEROS = [14.134725, 21.022040, 25.010858, 30.424876, 32.935062, 37.586178,
 
 LEAN_FILES = {"basic": "Basic", "euclid": "Euclid", "eulerproduct": "EulerProduct",
               "moebius": "Moebius", "pc": "PrimeCounting",
-              "zeta": "ZetaStatements", "ex": "Exercises"}
+              "zeta": "ZetaStatements", "ex": "Exercises",
+              "ch1": "Chapter1"}
 
 
 def main():

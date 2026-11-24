@@ -538,6 +538,65 @@ dialog::backdrop { overflow: hidden; overscroll-behavior: contain; }
   .machine-readout { grid-template-columns: 1fr; }
 }
 
+
+/* ============================================================
+   排版修订（modern-web-guidance: typography / form-factor-adaptation）
+   修复意外分行、文字居中、电脑/iPad/手机适配
+   ============================================================ */
+/* 只对标题与正文分别用 balance / pretty，绝不作用于 * */
+h1, h2, h3, h4 { text-wrap: balance; }
+p, li, summary, figcaption, blockquote { text-wrap: pretty; }
+:where(a, code) { overflow-wrap: anywhere; }
+img, video, canvas, svg { max-inline-size: 100%; }
+
+body { overflow-wrap: break-word; text-align: center; }
+.prose { margin-inline: auto; }
+.prose p, .callout, .callout p, .callout.quote footer, .card p, .card li,
+.deck, .hero-lead, .hero-sub, .hero-caption, .hero-legend, .timeline-body,
+.lab-head p, .lab-note, .figure-card figcaption, .section-head,
+.proof-body p, .note-box, .quiz-q, .quiz-feedback, .site-footer p,
+.subhead, .kicker, .flow-step small, .dual-canvas figcaption,
+.nice-table th, .nice-table td, .quiz-options button { text-align: center; }
+.prose ul, .card ul { list-style-position: inside; }
+/* 代码与证明状态保持左对齐（否则不可读），但块本身居中 */
+.panel-inner, .stepper-code, .stepper-state, .stepper-buttons,
+.quiz-options button, .machine-steps ol, .timeline button { text-align: start; }
+/* 行内公式不再用 inline-block 包裹，避免把整行中文挤到下一行 */
+.math { display: inline; }
+.math.display { display: block; text-align: center; }
+
+:root { --target-size: 24px; }
+/* 触摸目标（手机/iPad）与安全区 */
+@media (pointer: coarse) { :root { --target-size: 44px; } }
+:where(button, .toc a, .icon-btn, .btn, .ch1-btn) { min-block-size: var(--target-size); }
+.site-header { padding-block-start: env(safe-area-inset-top, 0px); }
+.site-footer { padding-block-end: max(34px, env(safe-area-inset-bottom, 0px)); }
+html { scroll-padding-top: 5rem; }
+
+/* 流式字号（rem + clamp，最大不超过最小 2.5 倍，支持 200% 缩放） */
+body { font-size: clamp(1rem, 0.95rem + 0.25vw, 1.12rem); }
+.section-head h2 { font-size: clamp(1.7rem, 1.2rem + 2vw, 2.6rem); }
+
+/* 实验卡片按容器宽度自适应，而非只看视口 */
+.lab { container: lab / inline-size; }
+@container lab (inline-size < 34rem) {
+  .lab-controls { grid-template-columns: 1fr; gap: .7rem; }
+  .lab-readout { grid-template-columns: 1fr 1fr; }
+  .dual-canvas { grid-template-columns: 1fr; }
+  .machine-readout { grid-template-columns: 1fr; }
+}
+.table-scroll { overflow: auto; container-type: inline-size; }
+@container (inline-size < 34rem) { .nice-table { font-size: 13px; } }
+
+@media (max-width: 1024px) { .prose { max-inline-size: 46rem; } }
+@media (max-width: 640px) {
+  .section { padding-inline: .85rem; }
+  .hero { padding-inline: .85rem; }
+  .lab { padding: .85rem; }
+  .proof-body { padding-inline: .7rem; }
+  .math.display .katex { font-size: .98em; }
+}
+
 /* ---------- footer ---------- */
 .site-footer {
   border-block-start: 1px solid var(--border); padding: 34px 20px; text-align: center;
@@ -562,7 +621,7 @@ html[data-motion="off"] * { animation-play-state: paused !important; }
   .section { padding-block: 56px; }
 }
 @media (max-width: 620px) {
-  body { font-size: 16px; }
+  body { font-size: 1rem; }
   .header-inner { padding-inline: 12px; gap: 10px; }
   .brand span { display: none; }
   .hero-stats { grid-template-columns: repeat(2, 1fr); }

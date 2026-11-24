@@ -32,6 +32,7 @@ the workspace root; the InfoView shows the goal state after each tactic.
 | `Riemann/Moebius.lean` | §7.6 | `μ`, Dirichlet convolution, Möbius inversion |
 | `Riemann/PrimeCounting.lean` | §7.7 | `π`, monotonicity, and mathlib's prime number theorem |
 | `Riemann/ZetaStatements.lean` | §8 | `riemannZeta`, functional equation, `RiemannHypothesis` |
+| `Riemann/Chapter1.lean` | chapter1.html | Chapter 1 formalised: prime factor lemma, Euclid, geometric sum, one-prime Euler factor, divergence of sum 1/p, Bertrand, general Euler product reference, ZetaEulerProduct statement |
 | `Riemann/Exercises.lean` | §9 | holes (`sorry`) for the reader |
 
 `Riemann/Exercises.lean` deliberately contains `sorry`: `lake build` succeeds
