@@ -9,7 +9,7 @@ LATEXMK := latexmk -xelatex -interaction=nonstopmode -file-line-error
 # Prefer a workspace-local biber when the system copy is broken (see biber-fix).
 export PATH := $(CURDIR)/.tools/bin:$(PATH)
 
-.PHONY: all pdf pdf-clean lean demo data clean help biber-fix
+.PHONY: all pdf pdf-clean lean demo data web serve clean help biber-fix
 
 all: pdf lean
 
@@ -23,9 +23,18 @@ pdf-clean:
 	cd $(TEXDIR) && latexmk -C riemann-lecture.tex
 	$(MAKE) pdf
 
-## Regenerate the numerical data used by the figures
+## Regenerate the numerical data used by the LaTeX figures
 data:
 	python3 scripts/gen_data.py
+
+## Regenerate the web page data and PNG assets
+web:
+	python3 scripts/gen_web_data.py
+	python3 scripts/gen_web_assets.py
+
+## Preview the interactive web page locally (Ctrl-C to stop)
+serve:
+	python3 -m http.server 8123 --directory web
 
 ## Check every Lean example against mathlib
 lean:
@@ -56,5 +65,7 @@ help:
 	@echo "  make lean       - lake build (checks all Lean examples)"
 	@echo "  make demo       - lake exe demo"
 	@echo "  make data       - regenerate tex/data/*.dat"
+	@echo "  make web        - regenerate web/data.js and web/assets/*.png"
+	@echo "  make serve      - preview the web page at http://127.0.0.1:8123/"
 	@echo "  make clean      - remove LaTeX build artifacts"
 	@echo "  make biber-fix  - macOS: extract a working arm64 biber into .tools/bin"
